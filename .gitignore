@@ -1,3 +1,6 @@
+# data folders
+#./02_data/
+
 # History files
 .Rhistory
 .Rapp.history
