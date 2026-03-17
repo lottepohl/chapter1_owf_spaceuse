@@ -1,12 +1,17 @@
 ---
+<<<<<<< HEAD
 title: "Data exploration of European Tracking Network data inside European Offshore Wind Farms"
 author: "Lotte Pohl, lotte.pohl@ugent.be"
+=======
+title: "etn owf exploration"
+>>>>>>> 300cc55d91f47aa975e7320e4d6c7d0a3a58ffd9
 format: html
 editor: visual
 editor_options: 
   chunk_output_type: console
 ---
 
+<<<<<<< HEAD
 
 # Setup
 
@@ -171,3 +176,46 @@ ideas: cumulative days of deployment, overall area covered, # of deployments
 #  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "segment"), data = df)
 ```
 
+=======
+## workspace
+
+```{r}
+# library(dplyr)
+# library(magrittr)
+# library(sf)
+# library(purrr)
+# library(lubridate)
+# 
+# library(tidyr)
+# library(ggplot2)
+# library(plotly)
+# 
+# library(leaflet)
+# library(mgcv)
+# 
+# # install.packages("pak")
+# # pak::pak("inbo/etn")
+# 
+# library(etn)
+```
+
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+>>>>>>> 300cc55d91f47aa975e7320e4d6c7d0a3a58ffd9
