@@ -38,3 +38,37 @@ load_files_to_env <- function(path, file_ext) {
   message("Loaded ", length(files), " object(s): ", paste(names(files), collapse = ", "))
   invisible(names(files))
 }
+
+
+# 2. remove double cols of etn df -----------------------------------------
+
+remove_double_cols <- function(animals){
+  animals$tag_serial_number <- gsub(",.*","", animals$tag_serial_number)
+  animals$tag_type <- gsub(",.*","", animals$tag_type)
+  animals$tag_subtype <- gsub(",.*","", animals$tag_subtype)
+  animals$acoustic_tag_id <- gsub(",.*","", animals$acoustic_tag_id)
+  return(animals)
+}
+
+# 3. save .rds file -------------------------------------------------------
+
+
+save_data <- function(data, folder){
+  base::saveRDS(data, file = paste0(folder, "/" , deparse(substitute(data)), ".rds"))
+}
+
+# 4. load .rds file -------------------------------------------------------
+
+
+load_data <- function(filestring, folder){
+  data <- base::readRDS(file = paste0(folder, "/", filestring, ".rds"))
+  return(data)
+}
+
+
+# 5. save ggplot ----------------------------------------------------------
+
+save_plot <- function(plot, folder, file_ext = "pdf", height = 15, width = 18, units = "cm"){
+  ggplot2::ggsave(filename = paste0(folder, "/", deparse(substitute(plot)),".", file_ext),
+                  height = height, width = width, units = units)
+}

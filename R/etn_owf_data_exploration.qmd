@@ -1,29 +1,32 @@
 ---
-title: "etn owf exploration"
+title: "Data exploration of European Tracking Network data inside European Offshore Wind Farms"
+author: "Lotte Pohl, lotte.pohl@ugent.be"
 format: html
 editor: visual
 editor_options: 
   chunk_output_type: console
 ---
 
-# Data exploration of European Tracking Network data inside European Offshore Wind Farms
 
-## Setup
+# Setup
 
-### workspace
+## workspace
 
 R packages
 
 ```{r pgk}
+#| output: false
+
 library(dplyr)
+library(purrr)
 # library(magrittr)
 library(sf)
-library(purrr)
+
 library(lubridate)
 
 library(tidyr)
 library(ggplot2)
-# library(plotly)
+library(plotly)
 
 library(leaflet)
 library(mapview)
@@ -33,7 +36,19 @@ library(mapview)
 # pak::pak("inbo/etn")
 
 library(etn)
+library(knitr)
+library(here)
+
 ```
+
+working directory
+
+```{r wd}
+# Set working directory to project root
+opts_knit$set(root.dir = here::here())
+
+```
+
 
 Loading functions
 
@@ -46,11 +61,16 @@ Setting paths
 ```{r var}
 path_spatial <- "data/spatial"
 path_data_raw <- "data_raw"
+path_data <- "data"
+path_plots <- "docs/plots"
+
 ```
 
-### loading spatial data
+## loading spatial data
 
 ```{r data-spatial}
+#| output: false
+
 load_files_to_env(path = path_spatial, file_ext = "gpkg")
 
 # fix owf polygons
@@ -65,9 +85,10 @@ windfarms_polygons_union <-
 windfarms_polygons_prod <- 
   windfarms_polygons %>%
   dplyr::filter(status == 'Production')
+# knitr::knit_exit()
 ```
 
-## ETN data
+# ETN data
 
 ```{r etn-con}
 ## connect to ETN R package
@@ -82,7 +103,9 @@ if(packageVersion('etn') >= "2.3.0"){
 ```
 
 
-### acoustic receiver deployments
+## acoustic receiver deployments
+
+TODO: potentially outsource etn data operations into separate script(s)
 
 ```{r etn-deployments}
 deployments_raw <-  etn::get_acoustic_deployments()
@@ -101,6 +124,50 @@ deployments <-
   dplyr::mutate(inside_OWF = lengths(sf::st_within(geometry, windfarms_polygons_prod)) > 0) %>%
   sf::st_join(windfarms_polygons_prod, join = sf::st_within) %>% 
   # remove duplicated deployments
-  dplyr::distinct(deployment_id, .keep_all = T)
+  dplyr::distinct(deployment_id, .keep_all = T) %>%
+  # fill recover_date_time with current date 
+  dplyr::mutate(recover_date_time = dplyr::if_else(recover_date_time %>% is.na(), Sys.time(), recover_date_time))
+
+save_data(deployments, folder = path_data)
+```
+
+let's see when and were the OWF deployments were
+```{r etn-deployments-owf}
+plot_deployments_owf_country <-
+  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE)) +
+  geom_segment(aes(x = deploy_date_time, y = country, xend = recover_date_time)) +
+  labs(title = "acoustic receiver deployments inside OWF by country", x = "", y = "country") +
+  theme_bw()
+plot_deployments_owf_country
+save_plot(plot_deployments_owf_country, folder = path_plots)
+
+plot_deployments_owf_station <-
+  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE)) +
+  geom_segment(aes(x = deploy_date_time, y = station_name, xend = recover_date_time, color = country)) +
+  labs(title = "acoustic receiver deployments inside OWF by station", x = "", y = "receiver station") +
+  theme_bw()
+plot_deployments_owf_station
+save_plot(plot_deployments_owf_station, folder = path_plots)
+```
+
+### summary stats
+
+TODO
+ideas: cumulative days of deployment, overall area covered, # of deployments
+
+## detections
+
+
+
+## tests
+
+```{r tests}
+# b <- ggplot(mtcars, aes(wt, mpg)) +
+#   geom_point()
+# 
+# df <- data.frame(x1 = 2.62, x2 = 3.57, y1 = 21.0, y2 = 15.0)
+# b +
+#  geom_curve(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "curve"), data = df) +
+#  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "segment"), data = df)
 ```
 

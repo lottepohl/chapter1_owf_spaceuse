@@ -14,6 +14,11 @@
 
 library(dplyr)
 library(sf)
+library(giscoR)
+# library(EMODnetWFS)
+# library(emodnet.wfs)
+library(pak)
+# pak::pak("lifewatch/mregions2")
 library(mregions2)
 
 
