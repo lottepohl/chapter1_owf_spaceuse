@@ -22,25 +22,34 @@ R packages
 ```{r pgk}
 #| output: false
 
-library(dplyr)
-library(purrr)
-# library(magrittr)
-library(sf)
-
-library(lubridate)
-
-library(tidyr)
-library(ggplot2)
-library(plotly)
-
-library(leaflet)
-library(mapview)
-# library(mgcv)
-
+# 0. data access
 # install.packages("pak")
 # pak::pak("inbo/etn")
-
 library(etn)
+library(DBI)
+library(RPostgreSQL)
+
+# 1. data wrangling
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(glue)
+# library(magrittr)
+
+# 2. spatiotemporal
+library(lubridate)
+library(sf)
+
+# 3. visualisations
+library(ggplot2)
+library(plotly)
+library(leaflet)
+library(mapview)
+
+# 4. analyses
+# library(mgcv)
+
+# 5. misc
 library(knitr)
 library(here)
 
@@ -51,7 +60,6 @@ working directory
 ```{r wd}
 # Set working directory to project root
 opts_knit$set(root.dir = here::here())
-
 ```
 
 
@@ -68,7 +76,6 @@ path_spatial <- "data/spatial"
 path_data_raw <- "data_raw"
 path_data <- "data"
 path_plots <- "docs/plots"
-
 ```
 
 ## loading spatial data
@@ -95,8 +102,8 @@ windfarms_polygons_prod <-
 
 # ETN data
 
-```{r etn-con}
-## connect to ETN R package
+```{r etn-R}
+# connect to ETN R package
 if(packageVersion('etn') >= "2.3.0"){
   # if 'new' version of etn R package: read .Renviron directly
   readRenviron(".Renviron")
@@ -105,6 +112,20 @@ if(packageVersion('etn') >= "2.3.0"){
 }else{
   # if 'old' version: create con object
   con <- etn::connect_to_etn(Sys.getenv("ETN_USER"), Sys.getenv("ETN_PWD"))}
+```
+
+```{r etn-postgres}
+# connect to the etn postgres db
+pgdrv <- dbDriver(drvName = "PostgreSQL")
+con_ETNdb <-DBI::dbConnect(pgdrv,
+                   dbname="ETN",
+                   host="pgetn.vliz.be", 
+                   port=5432,
+                   user = Sys.getenv("ETN_USER"),
+                   password = Sys.getenv("ETN_PWD"))
+
+# troubleshoooting
+
 ```
 
 
@@ -162,6 +183,15 @@ ideas: cumulative days of deployment, overall area covered, # of deployments
 
 ## detections
 
+query acoustic detections at the acoustic receiver deployments inside OWF
+```{r etn-dp-sql}
+# get deployment ids in the right format for the SQL query
+deployment_ids_sql <- 
+  paste0("('", paste(deployments %>% dplyr::filter(inside_OWF == TRUE) %>% dplyr::select(deployment_id) %>% unique(), collapse = "', '"), "')")
+
+
+
+```
 
 
 ## tests
@@ -175,47 +205,3 @@ ideas: cumulative days of deployment, overall area covered, # of deployments
 #  geom_curve(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "curve"), data = df) +
 #  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "segment"), data = df)
 ```
-
-=======
-## workspace
-
-```{r}
-# library(dplyr)
-# library(magrittr)
-# library(sf)
-# library(purrr)
-# library(lubridate)
-# 
-# library(tidyr)
-# library(ggplot2)
-# library(plotly)
-# 
-# library(leaflet)
-# library(mgcv)
-# 
-# # install.packages("pak")
-# # pak::pak("inbo/etn")
-# 
-# library(etn)
-```
-
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
->>>>>>> 300cc55d91f47aa975e7320e4d6c7d0a3a58ffd9
