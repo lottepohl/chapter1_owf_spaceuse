@@ -1,17 +1,12 @@
 ---
-<<<<<<< HEAD
 title: "Data exploration of European Tracking Network data inside European Offshore Wind Farms"
 author: "Lotte Pohl, lotte.pohl@ugent.be"
-=======
-title: "etn owf exploration"
->>>>>>> 300cc55d91f47aa975e7320e4d6c7d0a3a58ffd9
 format: html
 editor: visual
 editor_options: 
   chunk_output_type: console
 ---
 
-<<<<<<< HEAD
 
 # Setup
 
@@ -67,6 +62,8 @@ Loading functions
 
 ```{r fun}
 source("R/helpers.R")
+source("R/get_acoustic_detections.R")
+source("R/utils_etn.R")
 ```
 
 Setting paths
@@ -116,15 +113,14 @@ if(packageVersion('etn') >= "2.3.0"){
 
 ```{r etn-postgres}
 # connect to the etn postgres db
-pgdrv <- dbDriver(drvName = "PostgreSQL")
-con_ETNdb <-DBI::dbConnect(pgdrv,
-                   dbname="ETN",
-                   host="pgetn.vliz.be", 
-                   port=5432,
-                   user = Sys.getenv("ETN_USER"),
-                   password = Sys.getenv("ETN_PWD"))
-
-# troubleshoooting
+# pgdrv <- dbDriver(drvName = "PostgreSQL")
+# con_ETNdb <-DBI::dbConnect(pgdrv,
+#                    dbname="ETN",
+#                    host="pgetn.vliz.be", 
+#                    port=5432,
+#                    user = Sys.getenv("ETN_USER"),
+#                    password = Sys.getenv("ETN_PWD"))
+# # troubleshoooting - probably an IP whitelisting issue
 
 ```
 
@@ -136,7 +132,6 @@ TODO: potentially outsource etn data operations into separate script(s)
 ```{r etn-deployments}
 deployments_raw <-  etn::get_acoustic_deployments()
 save_data(deployments_raw, folder = path_data_raw)
-
 
 deployments <-
   deployments_raw %>%
@@ -155,6 +150,13 @@ deployments <-
   dplyr::mutate(recover_date_time = dplyr::if_else(recover_date_time %>% is.na(), Sys.time(), recover_date_time))
 
 save_data(deployments, folder = path_data)
+
+deployment_ids_owf <- 
+  deployments %>%
+    dplyr::filter(inside_OWF == TRUE) %>%
+    dplyr::select(deployment_id, deploy_date_time, recover_date_time, country) %>% 
+    sf::st_drop_geometry() %>%
+    unique()
 ```
 
 let's see when and were the OWF deployments were
@@ -189,8 +191,15 @@ query acoustic detections at the acoustic receiver deployments inside OWF
 deployment_ids_sql <- 
   paste0("('", paste(deployments %>% dplyr::filter(inside_OWF == TRUE) %>% dplyr::select(deployment_id) %>% unique(), collapse = "', '"), "')")
 
+library(etn)
+packageVersion('etn')
+detections <- 
+  etn::get_acoustic_detections(deployment_id = 3336)
+
+test <- get_acoustic_detections2(deployment_id = 3336)
 
 
+test$scientific_name %>% unique()
 ```
 
 
