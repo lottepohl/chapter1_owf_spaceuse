@@ -7,6 +7,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+TODO:
+- check with moratorium data -> how to present?
 
 # Setup
 
@@ -28,7 +30,8 @@ library(RPostgreSQL)
 library(dplyr)
 library(purrr)
 library(tidyr)
-library(glue)
+# library(glue)
+library(forcats)
 # library(magrittr)
 
 # 2. spatiotemporal
@@ -125,47 +128,13 @@ if(packageVersion('etn') >= "2.3.0"){
 ```
 
 
-## acoustic receiver deployments
-
-TODO: potentially outsource etn data operations into separate script(s)
+## deployments of acoustic receivers
 
 ```{r etn-deployments}
-deployments_raw <-  etn::get_acoustic_deployments()
-save_data(deployments_raw, folder = path_data_raw)
-
-deployments <-
-  deployments_raw %>%
-  # remove deployments with missing lat or lon
-  dplyr::filter(!is.na(deploy_latitude) | !is.na(deploy_longitude)) %>%
-  # transform lat/lon into geom
-  dplyr::mutate(lat = deploy_latitude,
-                lon = deploy_longitude) %>%
-  sf::st_as_sf(., coords = c("lon", "lat"), crs = 4326) %>%
-  # make new col with boolean that is TRUE if inside OWF
-  dplyr::mutate(inside_OWF = lengths(sf::st_within(geometry, windfarms_polygons_prod)) > 0) %>%
-  sf::st_join(windfarms_polygons_prod, join = sf::st_within) %>% 
-  # remove duplicated deployments
-  dplyr::distinct(deployment_id, .keep_all = T) %>%
-  # fill recover_date_time with current date 
-  dplyr::mutate(recover_date_time = dplyr::if_else(recover_date_time %>% is.na(), Sys.time(), recover_date_time))
-
-save_data(deployments, folder = path_data)
-
-# make summary per receiver station/deployment location
-deployments_station_sum <-
-  deployments %>%
-    # get the duration of each deployment
-    dplyr::mutate(deploy_duration = difftime(recover_date_time, deploy_date_time, units = "days")) %>%
-    # sf::st_drop_geometry() %>%
-    dplyr::group_by(station_name) %>%
-    dplyr::summarise(deploy_latitude = mean(deploy_latitude),
-                     deploy_longitude = mean(deploy_longitude),
-                     geometry = st_centroid(st_combine(geometry)),
-                     deploy_duration_total = sum(deploy_duration),
-                     deployment_ids = paste0(deployment_id, collapse = ", "),
-                     inside_OWF = paste0(inside_OWF %>% unique(), collapse = ", "),
-                     country = paste0(country %>% unique(), collapse = ", "))
-save_data(deployments_station_sum, folder = path_data)
+# load data queried in R/etn_data_queries.R
+deployments <- load_data("deployments", path_data)
+deployments_station_sum <- load_data("deployments_station_sum", path_data)
+deployment_stations_BE_OWF <- load_data("deployment_stations_BE_OWF", path_data)
 
 # get unique deployment ids
 deployment_ids_owf <- 
@@ -175,14 +144,12 @@ deployment_ids_owf <-
     sf::st_drop_geometry() %>%
     unique()
 
-# get station names from inside Belgian OWF
-deployment_stations_BE_OWF <-
-  deployments_station_sum %>%
-    sf::st_drop_geometry() %>%
-    dplyr::filter(country == "Belgium" & inside_OWF == TRUE) %>%
-    dplyr::mutate(median_deploy_duration = median(deploy_duration_total))
-    # dplyr::select(station_name) %>%
-    # dplyr::pull()
+# deployment_stations_BE_OWF_slice1 <-
+# deployment_stations_BE_OWF %>% 
+#   dplyr::filter(deploy_duration_total > median_deploy_duration) %>%
+#   dplyr::select(station_name)
+# 
+# deployment_stations_BE_OWF %>% st_drop_geometry() %>% slice_max(n = 5, order_by = deploy_duration_total) %>% dplyr::select(station_name) %>% pull() -> station_names
 ```
 
 let's see when and were the OWF deployments were
@@ -225,56 +192,170 @@ plot_deployments_owf_station_BE <-
 plot_deployments_owf_station_BE
 save_plot(plot_deployments_owf_station_BE, folder = path_plots)
 
-# how many unique stations are there?
-deployments %>% 
-  dplyr::filter(inside_OWF == TRUE, country == "Belgium") %>% 
-  dplyr::select(station_name) %>%
-  unique() %>%
-  nrow()
 ```
 
 
 ### summary stats
 
 TODO
-ideas: cumulative days of deployment, overall area covered, # of deployments
+ideas: cumulative days of deployment, overall area covered, dist to coast, # of deployments
+
+```{r etn-deployments-summary}
+# how many unique stations are there?
+deployments %>% 
+  dplyr::filter(inside_OWF == TRUE, country == "Belgium") %>% 
+  dplyr::select(station_name) %>%
+  unique() %>%
+  nrow() # TODO make part of the summary stats
+
+# which receiver stations have had hydrophones deployed for the longest?
+deployment_stations_BE_OWF_10max <-
+  deployment_stations_BE_OWF %>% st_drop_geometry() %>% slice_max(n = 10, order_by = deploy_duration_total)
+
+plot_deployments_owf_station_BE_duration <-
+  ggplot(data = deployment_stations_BE_OWF) +
+  geom_col(aes(x = fct_reorder(station_name, deploy_duration_total, .desc = TRUE), 
+               y = (deploy_duration_total %>% as.numeric()) / 365, fill = dist_to_coast_km)) +
+  scale_y_continuous(n.breaks = 10, expand = c(0,0)) +
+  labs(title = "Total deployment duration of receiver stations within Belgian OWF", y = "years of deployment", x = "station name", fill = "dist to coast in km") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 5))
+plot_deployments_owf_station_BE_duration
+save_plot(plot_deployments_owf_station_BE_duration, path_plots)
+
+plot_deployments_owf_station_BE_duration_10max <-
+  ggplot(data = deployment_stations_BE_OWF_10max) +
+  geom_col(aes(x = fct_reorder(station_name, deploy_duration_total, .desc = TRUE), 
+               y = (deploy_duration_total %>% as.numeric()) / 365, fill = dist_to_coast_km)) +
+  scale_y_continuous(n.breaks = 10, expand = c(0,0)) +
+  labs(title = "Top 10 deployment duration of receiver stations within Belgian OWF", y = "years of deployment", x = "station name", fill = "dist to coast in km") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 7))
+plot_deployments_owf_station_BE_duration_10max
+save_plot(plot_deployments_owf_station_BE_duration_10max, path_plots)
+
+```
+
 
 ## animal projects
 
 Let's check for relevant animal projects
 ```{r etn-animal-proj}
-animal_proj_keywords <- c("elasmo","elasmobranch", "seabass", "mackerel", "OWF")
+# the following keywords are considered in R/etn_data_queries.R
+animal_proj_keywords <- c("elasmo","elasmobranch", "seabass", "mackerel", "OWF", "VLIZ", "shark", "ray")
 
-etn_animal_proj <- etn::get_animal_projects()
+etn_anim_proj_key <- load_data("etn_anim_proj_key", path_data)
+```
 
-etn_proj_owf <- 
-  etn_proj %>%
-    dplyr::filter(grepl("OWF", etn_proj$project_code))
+## animals
+TODO: put somewhere else (doesn't follow the flow of thought here)
 
-OWF_proj_ani <- 
-  etn::get_animals(animal_project_code = etn_proj_owf$project_code) %>% 
-  dplyr::filter(tag_subtype == "animal")
+Animals tagged in projects that have one of the following keywords in their name: `r animal_proj_keywords`:
 
-OWF_proj_det <- 
-  etn::get_acoustic_detections(acoustic_project_code = "FISHOWF")
+```{r etn-animals-animproj}
+
+animals_anim_proj <- load_data("animals_anim_proj", path_data)
+
+animals_anim_proj_species <-
+  animals_anim_proj %>%
+  dplyr::group_by(scientific_name) %>%
+  dplyr::filter(!scientific_name %in% c(NA,"Built-in")) %>%
+  dplyr::summarise(n_individual = dplyr::n(),
+                   animal_proj_codes = paste0(animal_project_code %>% unique(), collapse= ", ")) %>%
+  dplyr::arrange(desc(n))
+
+animals_anim_proj_species %>% print(n = 50)
 ```
 
 
 ## detections
 
 query acoustic detections at the acoustic receiver deployments inside OWF
-```{r etn-detections}
+```{r etn-detections-station}
 # tests
-test <- get_acoustic_detections2(deployment_id = 3336)
-test$scientific_name %>% unique()
+# test <- get_acoustic_detections2(deployment_id = 3336)
+# test$scientific_name %>% unique()
 
-# try to run biiig query from all stations within BE OWF
-detections_OWF_BE <-
-  etn::get_acoustic_detections(station_name = 
-                                 deployment_stations_BE_OWF %>% 
-                                 dplyr::filter(deploy_duration_total > median_deploy_duration) %>%
-                                 dplyr::select(station_name))
+# # try to run biiig query from all stations within BE OWF
+# detections_OWF_BE <-
+#   etn::get_acoustic_detections(station_name = 
+#                                  deployment_stations_BE_OWF %>% 
+#                                  dplyr::filter(deploy_duration_total > median_deploy_duration) %>%
+#                                  dplyr::select(station_name))
 
+
+```
+
+```{r etn-detections-animalproj}
+
+# detections_animal_proj <-
+#   etn::get_acoustic_detections(animal_project_code = etn_anim_proj_key$project_code)
+```
+
+Checking the acoustic detections at the stations that have had receivers depployed the longest
+```{r etn-detections-longest-deploy-stations}
+
+detections_BE_OWF_10longestdeployments_sum <- load_data("detections_BE_OWF_10longestdeployments_sum", path_data)
+detections_BE_OWF_10longestdeployments_sum_animal <- load_data("detections_BE_OWF_10longestdeployments_sum_animal", path_data)
+
+detections_BE_OWF_10longestdeployments_sum_animal %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(scientific_name) %>%
+  dplyr::summarise(n_det = sum(n_det),
+                   n_ind = dplyr::n(),
+                   first_det = min(first_det) %>% as.Date(),
+                   last_det = max(last_det) %>% as.Date()) %>%
+  dplyr::arrange(desc(n_det)) %>%
+  print(n = 50)
+
+plot_detections_BE_OWF_10longestdeployments <-
+  ggplot(data = detections_BE_OWF_10longestdeployments_sum) +
+  geom_point(aes(x = month, y = scientific_name, size = n_det)) +
+  labs(title = "detections in 10 longest active stations", x = "", y = "species") +
+  theme_bw() +
+  guides(size = 'none')
+plot_detections_BE_OWF_10longestdeployments
+save_plot(plot_detections_BE_OWF_10longestdeployments, path_plots)
+```
+
+abacus plots per species
+
+```{r etn-detections-species}
+# seabass
+detections_BE_OWF_seabass_sum <- load_data("detections_BE_OWF_seabass_sum", path_data)
+
+plot_detections_seabass <-
+  ggplot(data = detections_BE_OWF_seabass_sum) +
+  geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
+  labs(x = "", title = "seabass detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
+  theme_bw()
+# plot_detections_seabass
+save_plot(plot_detections_seabass, folder = path_plots, height = 18)
+plot_detections_seabass %>% ggplotly()
+
+# smoothhound
+detections_BE_OWF_smoothhound_sum <- load_data("detections_BE_OWF_smoothhound_sum", path_data)
+
+plot_detections_smoothhound <-
+  ggplot(data = detections_BE_OWF_smoothhound_sum) +
+  geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
+  labs(x = "", title = "smoothhound detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
+  theme_bw()
+plot_detections_smoothhound
+save_plot(plot_detections_smoothhound, folder = path_plots, height = 18)
+# plot_detections_smoothhound %>% ggplotly()
+
+# thornbackray
+detections_BE_OWF_thornbackray_sum <- load_data("detections_BE_OWF_thornbackray_sum", path_data)
+
+plot_detections_thornbackray <-
+  ggplot(data = detections_BE_OWF_thornbackray_sum) +
+  geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
+  labs(x = "", title = "thornbackray detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
+  theme_bw()
+plot_detections_thornbackray
+save_plot(plot_detections_thornbackray, folder = path_plots, height = 18)
+# plot_detections_thornbackray %>% ggplotly()
 
 ```
 

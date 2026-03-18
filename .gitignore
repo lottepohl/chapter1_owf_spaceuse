@@ -1,5 +1,6 @@
 # data folders
 #./02_data/
+data_raw/etn/*.rds
 
 # History files
 .Rhistory

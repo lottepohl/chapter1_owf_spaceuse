@@ -22,10 +22,20 @@ library(pak)
 library(mregions2)
 
 
-## spatial objects
+# paths -------------------------------------------------------------------
+
+path_spatial <- "data/spatial"
+path_data_raw <- "data_raw"
+path_data <- "data"
+path_plots <- "docs/plots"
+
+
+# spatial objects ---------------------------------------------------------
+
 BPNS <- mregions2::gaz_search(3293) %>% mregions2::gaz_geometry() # Belgian EEZ
 Scheldt_Estuary <-  mregions2::gaz_search(4812) %>% mregions2::gaz_geometry()
 BENL <- mregions2::gaz_search(c(14, 15)) %>% mregions2::gaz_geometry()
+save_data(BENL, path_spatial)
 #BE_OWF <- sf::st_read(dsn = file.path(getwd(), "etn-projects/01_maps/layers/OWF_BE_safetyzones.gpkg")) %>% sf::st_transform(4326)
 countries <- giscoR::gisco_get_countries(year = "2024", resolution = 03, region = "Europe")
 

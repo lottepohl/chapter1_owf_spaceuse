@@ -72,3 +72,17 @@ save_plot <- function(plot, folder, file_ext = "pdf", height = 15, width = 18, u
   ggplot2::ggsave(filename = paste0(folder, "/", deparse(substitute(plot)),".", file_ext),
                   height = height, width = width, units = units)
 }
+
+
+# 6. query etn detections per species -------------------------------------
+
+etn_det_per_species <- function(species = c("Mustelus asterias", "Raja clavata"), station_names = station_names){
+  # species <- c("Mustelus asterias", "Raja clavata")
+  # 1. loop over species
+  for(i in species){
+    
+    # name the created df what's inside df_name, but make it: 'detections_m_asterias' for species = mustelus asterias, for example
+    {df_name} <- etn::get_acoustic_detections(scientific_name = i, station_name = station_names)
+  }
+}
+
