@@ -180,8 +180,9 @@ deployment_stations_BE_OWF <-
   deployments_station_sum %>%
     sf::st_drop_geometry() %>%
     dplyr::filter(country == "Belgium" & inside_OWF == TRUE) %>%
-    dplyr::select(station_name) %>%
-    dplyr::pull()
+    dplyr::mutate(median_deploy_duration = median(deploy_duration_total))
+    # dplyr::select(station_name) %>%
+    # dplyr::pull()
 ```
 
 let's see when and were the OWF deployments were
@@ -238,6 +239,27 @@ deployments %>%
 TODO
 ideas: cumulative days of deployment, overall area covered, # of deployments
 
+## animal projects
+
+Let's check for relevant animal projects
+```{r etn-animal-proj}
+animal_proj_keywords <- c("elasmo","elasmobranch", "seabass", "mackerel", "OWF")
+
+etn_animal_proj <- etn::get_animal_projects()
+
+etn_proj_owf <- 
+  etn_proj %>%
+    dplyr::filter(grepl("OWF", etn_proj$project_code))
+
+OWF_proj_ani <- 
+  etn::get_animals(animal_project_code = etn_proj_owf$project_code) %>% 
+  dplyr::filter(tag_subtype == "animal")
+
+OWF_proj_det <- 
+  etn::get_acoustic_detections(acoustic_project_code = "FISHOWF")
+```
+
+
 ## detections
 
 query acoustic detections at the acoustic receiver deployments inside OWF
@@ -248,7 +270,12 @@ test$scientific_name %>% unique()
 
 # try to run biiig query from all stations within BE OWF
 detections_OWF_BE <-
-  etn::get_acoustic_detections(station_name = deployment_stations_BE_OWF)
+  etn::get_acoustic_detections(station_name = 
+                                 deployment_stations_BE_OWF %>% 
+                                 dplyr::filter(deploy_duration_total > median_deploy_duration) %>%
+                                 dplyr::select(station_name))
+
+
 ```
 
 
