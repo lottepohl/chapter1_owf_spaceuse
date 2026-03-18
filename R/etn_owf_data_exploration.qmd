@@ -151,12 +151,37 @@ deployments <-
 
 save_data(deployments, folder = path_data)
 
+# make summary per receiver station/deployment location
+deployments_station_sum <-
+  deployments %>%
+    # get the duration of each deployment
+    dplyr::mutate(deploy_duration = difftime(recover_date_time, deploy_date_time, units = "days")) %>%
+    # sf::st_drop_geometry() %>%
+    dplyr::group_by(station_name) %>%
+    dplyr::summarise(deploy_latitude = mean(deploy_latitude),
+                     deploy_longitude = mean(deploy_longitude),
+                     geometry = st_centroid(st_combine(geometry)),
+                     deploy_duration_total = sum(deploy_duration),
+                     deployment_ids = paste0(deployment_id, collapse = ", "),
+                     inside_OWF = paste0(inside_OWF %>% unique(), collapse = ", "),
+                     country = paste0(country %>% unique(), collapse = ", "))
+save_data(deployments_station_sum, folder = path_data)
+
+# get unique deployment ids
 deployment_ids_owf <- 
   deployments %>%
     dplyr::filter(inside_OWF == TRUE) %>%
     dplyr::select(deployment_id, deploy_date_time, recover_date_time, country) %>% 
     sf::st_drop_geometry() %>%
     unique()
+
+# get station names from inside Belgian OWF
+deployment_stations_BE_OWF <-
+  deployments_station_sum %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(country == "Belgium" & inside_OWF == TRUE) %>%
+    dplyr::select(station_name) %>%
+    dplyr::pull()
 ```
 
 let's see when and were the OWF deployments were
@@ -170,13 +195,43 @@ plot_deployments_owf_country
 save_plot(plot_deployments_owf_country, folder = path_plots)
 
 plot_deployments_owf_station <-
-  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE)) +
+  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE)& !grepl(",", country)) +
   geom_segment(aes(x = deploy_date_time, y = station_name, xend = recover_date_time, color = country)) +
   labs(title = "acoustic receiver deployments inside OWF by station", x = "", y = "receiver station") +
   theme_bw()
 plot_deployments_owf_station
 save_plot(plot_deployments_owf_station, folder = path_plots)
+
+plot_deployments_owf_station_hist <-
+  ggplot(data = deployments_station_sum %>% dplyr::filter(inside_OWF == TRUE & !grepl(",", country))) +
+  geom_histogram(aes(x = deploy_duration_total)) +
+  facet_wrap(~country) +
+  labs(title = "deployment duration per receiver station", x = "deployment duration in days") +
+  theme_bw()
+plot_deployments_owf_station_hist
+save_plot(plot_deployments_owf_station_hist, folder = path_plots)
 ```
+
+To explore what species have been detected in BE OWF, we get all belgian OWF stations and get the acoustic detections for those.
+
+```{r etn-deployments-owf-BE}
+
+plot_deployments_owf_station_BE <-
+  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE, country == "Belgium")) +
+  geom_segment(aes(x = deploy_date_time, y = station_name, xend = recover_date_time)) +
+  labs(title = "acoustic receiver deployments inside Belgian OWF by station", x = "", y = "receiver station") +
+  theme_bw()
+plot_deployments_owf_station_BE
+save_plot(plot_deployments_owf_station_BE, folder = path_plots)
+
+# how many unique stations are there?
+deployments %>% 
+  dplyr::filter(inside_OWF == TRUE, country == "Belgium") %>% 
+  dplyr::select(station_name) %>%
+  unique() %>%
+  nrow()
+```
+
 
 ### summary stats
 
@@ -186,20 +241,14 @@ ideas: cumulative days of deployment, overall area covered, # of deployments
 ## detections
 
 query acoustic detections at the acoustic receiver deployments inside OWF
-```{r etn-dp-sql}
-# get deployment ids in the right format for the SQL query
-deployment_ids_sql <- 
-  paste0("('", paste(deployments %>% dplyr::filter(inside_OWF == TRUE) %>% dplyr::select(deployment_id) %>% unique(), collapse = "', '"), "')")
-
-library(etn)
-packageVersion('etn')
-detections <- 
-  etn::get_acoustic_detections(deployment_id = 3336)
-
+```{r etn-detections}
+# tests
 test <- get_acoustic_detections2(deployment_id = 3336)
-
-
 test$scientific_name %>% unique()
+
+# try to run biiig query from all stations within BE OWF
+detections_OWF_BE <-
+  etn::get_acoustic_detections(station_name = deployment_stations_BE_OWF)
 ```
 
 
