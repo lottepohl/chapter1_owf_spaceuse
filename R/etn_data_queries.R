@@ -131,7 +131,7 @@ save_data(detections_OWF_longestdeployments, path_data)
 detections_BE_OWF_10longestdeployments_sum <-
 detections_OWF_longestdeployments %>%
   dplyr::filter(!scientific_name %in% c("Built-in", NA)) %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
                    scientific_name = scientific_name %>% unique(),
@@ -158,7 +158,7 @@ save_data(detections_BE_OWF_smoothhound, path_data_raw_etn)
 
 detections_BE_OWF_smoothhound_sum <-
   detections_BE_OWF_smoothhound %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
                    animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
@@ -174,7 +174,7 @@ save_data(detections_BE_OWF_seabass, path_data_raw_etn)
 
 detections_BE_OWF_seabass_sum <-
   detections_BE_OWF_seabass %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
     dplyr::group_by(animal_id, station_name, month) %>%
     dplyr::summarise(n_det = dplyr::n(),
                      animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
@@ -210,13 +210,13 @@ tags_seabass <-
 # animal 23104 and 65558 were both tagged with tag 22020234
 # animal 19855 and 19843 were both tagged with tag 1384335
 
-detections_seabass <- etn_det_per_tag(animals_seabass)
+detections_seabass <- etn_det_per_tag(animals_seabass %>% tail(n = 510-34))
 
-detections_seabass <- load_data("detections_progress", path_data_raw_etn)
+detections_seabass <- detections_progress
 
 detections_seabass_sum <-
   detections_seabass %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
                    animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
@@ -249,7 +249,7 @@ save_data(detections_BE_OWF_thornbackray, path_data_raw_etn)
 
 detections_BE_OWF_thornbackray_sum <-
   detections_BE_OWF_thornbackray %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
                    animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
@@ -266,7 +266,7 @@ detections_BE_OWF_cod <- etn::get_acoustic_detections(scientific_name = "Gadus m
 
 detections_BE_OWF_cod_sum <-
   detections_BE_OWF_cod %>%
-  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::mutate(month = ceiling_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
                    animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),

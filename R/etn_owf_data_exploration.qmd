@@ -85,6 +85,7 @@ Loading data
 load_files_to_env(path = path_spatial, file_ext = "gpkg")
 load_files_to_env(path = path_data_raw_etn, file_ext = "rds")
 load_files_to_env(path = path_data, file_ext = "rds")
+knitr::knit_exit()
 ```
 
 
@@ -310,7 +311,7 @@ detections_BE_OWF_10longestdeployments_sum_animal %>%
 plot_detections_BE_OWF_10longestdeployments <-
   ggplot(data = detections_BE_OWF_10longestdeployments_sum) +
   geom_point(aes(x = month, y = scientific_name, size = n_det)) +
-  labs(title = "detections in 10 longest active stations", x = "", y = "species") +
+  labs(title = "detections in 10 longest active stations inside BE OWF", x = "", y = "species") +
   theme_bw() +
   guides(size = 'none')
 plot_detections_BE_OWF_10longestdeployments
@@ -321,38 +322,34 @@ abacus plots per species
 
 ```{r etn-detections-species}
 
-plot_detections_seabass <-
+plot_detections_BE_OWF_seabass <-
   ggplot(data = detections_BE_OWF_seabass_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "seabass detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
   theme_bw()
-# plot_detections_seabass
-save_plot(plot_detections_seabass, folder = path_plots, height = 18)
-plot_detections_seabass %>% ggplotly()
+# plot_detections_BE_OWF_seabass
+save_plot(plot_detections_BE_OWF_seabass, folder = path_plots, height = 18)
+plot_detections_BE_OWF_seabass %>% ggplotly()
 
 # smoothhound
-detections_BE_OWF_smoothhound_sum <- load_data("detections_BE_OWF_smoothhound_sum", path_data)
-
-plot_detections_smoothhound <-
+plot_detections_BE_OWF_smoothhound <-
   ggplot(data = detections_BE_OWF_smoothhound_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "smoothhound detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
   theme_bw()
-plot_detections_smoothhound
-save_plot(plot_detections_smoothhound, folder = path_plots, height = 18)
-# plot_detections_smoothhound %>% ggplotly()
+plot_detections_BE_OWF_smoothhound
+save_plot(plot_detections_BE_OWF_smoothhound, folder = path_plots, height = 18)
+# plot_detections_BE_OWF_smoothhound %>% ggplotly()
 
 # thornbackray
-detections_BE_OWF_thornbackray_sum <- load_data("detections_BE_OWF_thornbackray_sum", path_data)
-
-plot_detections_thornbackray <-
+plot_detections_BE_OWF_thornbackray <-
   ggplot(data = detections_BE_OWF_thornbackray_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "thornbackray detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
   theme_bw()
-plot_detections_thornbackray
-save_plot(plot_detections_thornbackray, folder = path_plots, height = 18)
-# plot_detections_thornbackray %>% ggplotly()
+plot_detections_BE_OWF_thornbackray
+save_plot(plot_detections_BE_OWF_thornbackray, folder = path_plots, height = 18)
+# plot_detections_BE_OWF_thornbackray %>% ggplotly()
 
 ```
 
@@ -364,10 +361,29 @@ Some summary statistics
 
 
 
-Seabass has the most detections inside Belgian OWF. So let's look a bit more in detail into those detections:
+Seabass has the most detections inside Belgian OWF. So let's look a bit more in detail into those detections
+
+### seabass
 
 ```{r detections-seabass}
 
+plot_detections_seabass <- 
+  ggplot() +
+  # animal tagging
+  geom_point(data = animals_seabass, aes(x = release_date_time, y = fct_reorder(animal_id %>% as.factor(), paste(animal_project_code, release_date_time,  sep = "_"), .desc = T), color = animal_project_code), shape = 4, size = 0.5) +
+  # all etn detections (sum)
+  geom_point(data = detections_seabass_sum, aes(x = month, y = animal_id %>% as.factor(), size = n_det)) +
+  # # BE OWF detections
+  geom_point(data = detections_BE_OWF_seabass_sum, aes(x = month, y = animal_id %>% as.factor(), size = n_det), color = "grey") +
+  # animal tagging
+  geom_point(data = animals_seabass, aes(x = release_date_time, y = fct_reorder(animal_id %>% as.factor(), paste(animal_project_code, release_date_time,  sep = "_"), .desc = T), color = animal_project_code), shape = 4, size = 0.5) +
+  scale_size(transform = "log10", range = c(0.1, 2)) +
+  labs(title = "seabass detections inside/outside OWF", y = "animal id", x = "", color = "animal project code", size = "n detections (per month)") +
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
+plot_detections_seabass
+
+save_plot(plot_detections_seabass, height = 20, folder = path_plots)
 ```
 
 
