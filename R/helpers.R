@@ -18,6 +18,7 @@ load_files_to_env <- function(path, file_ext) {
                       "xlsx" = readxl::read_excel,
                       "xls"  = readxl::read_excel,
                       "json" = jsonlite::fromJSON,
+                      "rds"  = readRDS, 
                       stop("Unsupported file extension: '", file_ext, "'. Supported: gpkg, csv, tsv, xlsx, xls, json")
   )
   
@@ -76,13 +77,52 @@ save_plot <- function(plot, folder, file_ext = "pdf", height = 15, width = 18, u
 
 # 6. query etn detections per species -------------------------------------
 
-etn_det_per_species <- function(species = c("Mustelus asterias", "Raja clavata"), station_names = station_names){
-  # species <- c("Mustelus asterias", "Raja clavata")
-  # 1. loop over species
-  for(i in species){
-    
-    # name the created df what's inside df_name, but make it: 'detections_m_asterias' for species = mustelus asterias, for example
-    {df_name} <- etn::get_acoustic_detections(scientific_name = i, station_name = station_names)
-  }
-}
+# etn_det_per_species <- function(species = c("Mustelus asterias", "Raja clavata"), station_names = station_names){
+#   # species <- c("Mustelus asterias", "Raja clavata")
+#   # 1. loop over species
+#   for(i in species){
+#     
+#     # name the created df what's inside df_name, but make it: 'detections_m_asterias' for species = mustelus asterias, for example
+#     {df_name} <- etn::get_acoustic_detections(scientific_name = i, station_name = station_names)
+#   }
+# }
 
+etn_det_per_tag <- function(animals){
+  detections_all <- tibble()
+  
+  # Loop over row indices
+  for(i in seq_len(nrow(animals))){
+    
+    # Extract the specific row
+    animal_row <- animals[i, ]
+    serial_num <- animal_row$tag_serial_number
+    
+    # Wrap the API call in tryCatch to handle errors gracefully
+    detections_animal <- tryCatch({
+      
+      # Attempt to fetch data
+      etn::get_acoustic_detections(tag_serial_number = serial_num)
+      
+    }, error = function(e) {
+      
+      # If an error occurs:
+      message("⚠️  Failed to fetch data for tag: ", serial_num, " | Error: ", e$message)
+      
+      # Return an empty tibble with the correct structure (optional but good practice)
+      # If you don't know the structure, returning NULL or an empty tibble() works 
+      # but rbind might complain if columns don't match. 
+      # Safest is to return an empty tibble() and filter later, or return NULL.
+      return(tibble()) 
+    })
+    
+    # Only combine if we got data (check if it's not empty)
+    if(nrow(detections_animal) > 0) {
+      detections_all <- rbind(detections_all, detections_animal)
+    }
+  }
+  
+  return(detections_all)
+}
+# animals_test <- animals_seabass %>% head(n=10)
+# animals_test
+# detections_test <- etn_det_per_tag(animals_test)

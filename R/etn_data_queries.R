@@ -25,12 +25,25 @@ source("R/helpers.R")
 
 path_spatial <- "data/spatial"
 path_data_raw <- "data_raw"
+path_data_raw_etn <- "data_raw/etn"
 path_data <- "data"
 path_plots <- "docs/plots"
 
 # load_data ---------------------------------------------------------------
 
 BENL <- load_data("BENL", path_spatial)
+
+
+# connect to ETN ----------------------------------------------------------
+
+if(packageVersion('etn') >= "2.3.0"){
+  # if 'new' version of etn R package: read .Renviron directly
+  readRenviron(".Renviron")
+  Sys.getenv("ETN_USER")
+  Sys.getenv("ETN_PWD")
+}else{
+  # if 'old' version: create con object
+  con <- etn::connect_to_etn(Sys.getenv("ETN_USER"), Sys.getenv("ETN_PWD"))}
 
 # deployments -------------------------------------------------------------
 
@@ -105,7 +118,7 @@ animals_anim_proj <-
 save_data(animals_anim_proj, path_data)
 
 # detections --------------------------------------------------------------
-
+load_files_to_env(path_data_raw_etn, file_ext = "rds")
 
 ## from 10 longest deployed stations ---------------------------------------
 
@@ -141,14 +154,15 @@ save_data(detections_BE_OWF_10longestdeployments_sum_animal, path_data)
 
 detections_BE_OWF_smoothhound <- etn::get_acoustic_detections(scientific_name = "Mustelus asterias",
                                                               station_name = deployment_stations_BE_OWF$station_name)
-save_data(detections_BE_OWF_smoothhound, path_data)
+save_data(detections_BE_OWF_smoothhound, path_data_raw_etn)
 
 detections_BE_OWF_smoothhound_sum <-
   detections_BE_OWF_smoothhound %>%
   dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
-                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ",")) %>%
+                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
+                   scientific_name = scientific_name %>% unique()) %>%
   dplyr::left_join(deployment_stations_BE_OWF %>% dplyr::select(station_name, dist_to_coast_km, deploy_duration_total))
 
 save_data(detections_BE_OWF_smoothhound_sum, path_data)
@@ -156,63 +170,95 @@ save_data(detections_BE_OWF_smoothhound_sum, path_data)
 ## seabass -------------------------------------------------------------
 detections_BE_OWF_seabass <- etn::get_acoustic_detections(scientific_name = "Dicentrarchus labrax",
                                                           station_name = deployment_stations_BE_OWF$station_name)
-save_data(detections_BE_OWF_seabass, path_data)
+save_data(detections_BE_OWF_seabass, path_data_raw_etn)
 
 detections_BE_OWF_seabass_sum <-
   detections_BE_OWF_seabass %>%
   dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
     dplyr::group_by(animal_id, station_name, month) %>%
     dplyr::summarise(n_det = dplyr::n(),
-                     animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ",")) %>%
-    dplyr::left_join(deployment_stations_BE_OWF %>% dplyr::select(station_name, dist_to_coast_km, deploy_duration_total))
+                     animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
+                     tag_serial_number = paste0(tag_serial_number %>% unique(), collapse = ","),
+                     scientific_name = scientific_name %>% unique()) %>%
+    dplyr::left_join(deployment_stations_BE_OWF %>% dplyr::select(station_name, dist_to_coast_km, deploy_duration_total)) 
 
 save_data(detections_BE_OWF_seabass_sum, path_data)
+
+
+### all seabass detections in ETN -------------------------------------------
+## get seabass detections from the same animal projects
+animal_proj_seabass <- detections_BE_OWF_seabass_sum$animal_proj_code %>% unique()
+
+## seabass animals
+animals_seabass_raw <- etn::get_animals(animal_project_code = animal_proj_seabass, scientific_name = "Dicentrarchus labrax")
+save_data(animals_seabass_raw, path_data_raw_etn)
+
+animals_seabass <-
+  animals_seabass_raw %>%
+    remove_double_cols() %>%
+    dplyr::filter(tag_serial_number != "")
+
+tags_seabass <-
+  etn::get_tags(tag_serial_number = animals_seabass$tag_serial_number)
+
+# test <- get_tags(tag_serial_number = "0A6X")
+# test2 <- get_tags(acoustic_tag_id = "OPI-620")
+# test3 <- get_tags(acoustic_tag_id = animals_seabass$acoustic_tag_id[1:10])
+
+# test<- animals_seabass %>% group_by(tag_serial_number) %>% summarise(animal_id = paste0(animal_id %>% unique(), collapse = ","))
+# animal 23104 and 65558 were both tagged with tag 22020234
+# animal 19855 and 19843 were both tagged with tag 1384335
+
+detections_seabass <- etn_det_per_tag(animals_seabass)
+detections_outside_OWF_seabass <- etn::get_acoustic_detections(scientific_name = "Dicentrarchus labrax", animal_project_code = animal_proj_seabass)
 
 ## catshark -------------------------------------------------------------
 
 detections_BE_OWF_catshark <- etn::get_acoustic_detections(scientific_name = "Scyliorhinus canicula",
                                                            station_name = deployment_stations_BE_OWF$station_name)
-save_data(detections_BE_OWF_catshark, path_data)
+save_data(detections_BE_OWF_catshark, path_data_raw_etn)
 
 
 ## mackerel -------------------------------------------------------------
 
 detections_BE_OWF_mackerel <- etn::get_acoustic_detections(scientific_name = "Scomber scombrus",
                                                            station_name = deployment_stations_BE_OWF$station_name)
-save_data(detections_BE_OWF_mackerel, path_data)
+save_data(detections_BE_OWF_mackerel, path_data_raw_etn)
 
 
 ## thornback -------------------------------------------------------------
 
 detections_BE_OWF_thornbackray <- etn::get_acoustic_detections(scientific_name = "Raja clavata",
                                                                station_name = deployment_stations_BE_OWF$station_name)
-save_data(detections_BE_OWF_thornbackray, path_data)
+save_data(detections_BE_OWF_thornbackray, path_data_raw_etn)
 
 detections_BE_OWF_thornbackray_sum <-
   detections_BE_OWF_thornbackray %>%
   dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
-                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ",")) %>%
+                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
+                   scientific_name = scientific_name %>% unique()) %>%
   dplyr::left_join(deployment_stations_BE_OWF %>% dplyr::select(station_name, dist_to_coast_km, deploy_duration_total))
 
-save_data(detections_BE_OWF_thornbackray_sum, path_data)
+save_data(detections_BE_OWF_thornbackray_sum, path_data_raw)
 
 ## cod -------------------------------------------------------------
 
 detections_BE_OWF_cod <- etn::get_acoustic_detections(scientific_name = "Gadus morhua",
                                                       station_name = deployment_stations_BE_OWF$station_name)
-# save_data(detections_BE_OWF_cod, path_data)
+# save_data(detections_BE_OWF_cod, path_data_raw_etn)
 
 detections_BE_OWF_cod_sum <-
   detections_BE_OWF_cod %>%
   dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
   dplyr::group_by(animal_id, station_name, month) %>%
   dplyr::summarise(n_det = dplyr::n(),
-                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ",")) %>%
+                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
+                   scientific_name = scientific_name %>% unique()) %>%
   dplyr::left_join(deployment_stations_BE_OWF %>% dplyr::select(station_name, dist_to_coast_km, deploy_duration_total))
 
-save_data(detections_BE_OWF_cod_sum, path_data)
+save_data(detections_BE_OWF_cod_sum, path_data_raw)
 
 
 
