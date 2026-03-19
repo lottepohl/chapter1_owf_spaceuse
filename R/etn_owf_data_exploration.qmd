@@ -9,6 +9,7 @@ editor_options:
 
 TODO:
 - check with moratorium data -> how to present?
+- put the exact concession zone for deployments
 
 # Setup
 
@@ -21,10 +22,11 @@ R packages
 
 # 0. data access
 # install.packages("pak")
+# library(pak)
 # pak::pak("inbo/etn")
 library(etn)
-library(DBI)
-library(RPostgreSQL)
+# library(DBI)
+# library(RPostgreSQL)
 
 # 1. data wrangling
 library(dplyr)
@@ -42,7 +44,8 @@ library(sf)
 library(ggplot2)
 library(plotly)
 library(leaflet)
-# library(mapview)
+library(patchwork)
+library(mapview)
 
 # 4. analyses
 # library(mgcv)
@@ -85,11 +88,11 @@ Loading data
 load_files_to_env(path = path_spatial, file_ext = "gpkg")
 load_files_to_env(path = path_data_raw_etn, file_ext = "rds")
 load_files_to_env(path = path_data, file_ext = "rds")
-knitr::knit_exit()
+# knitr::knit_exit()
 ```
 
 
-## loading spatial data
+## spatial OWF data
 
 ```{r data-spatial}
 #| output: false
@@ -108,13 +111,12 @@ windfarms_polygons_prod <-
   windfarms_polygons %>%
   dplyr::filter(status == 'Production')
 # knitr::knit_exit()
+
+
+mapview(windfarms_polygons_union) + windfarms_polygons_prod
 ```
 
 # ETN data
-
-```{r etn-data}
-load_files_to_env(path = path_data, file_ext = "rds")
-```
 
 ```{r etn-postgres}
 # connect to the etn postgres db
@@ -134,13 +136,13 @@ load_files_to_env(path = path_data, file_ext = "rds")
 
 ```{r etn-deployments}
 
-# get unique deployment ids
-deployment_ids_owf <- 
-  deployments %>%
-    dplyr::filter(inside_OWF == TRUE) %>%
-    dplyr::select(deployment_id, deploy_date_time, recover_date_time, country) %>% 
-    sf::st_drop_geometry() %>%
-    unique()
+# # get unique deployment ids
+# deployment_ids_owf <- 
+#   deployments %>%
+#     dplyr::filter(inside_OWF == TRUE) %>%
+#     dplyr::select(deployment_id, deploy_date_time, recover_date_time, country) %>% 
+#     sf::st_drop_geometry() %>%
+#     unique()
 
 # deployment_stations_BE_OWF_slice1 <-
 # deployment_stations_BE_OWF %>% 
@@ -156,7 +158,7 @@ plot_deployments_owf_country <-
   ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE)) +
   geom_segment(aes(x = deploy_date_time, y = country, xend = recover_date_time)) +
   labs(title = "acoustic receiver deployments inside OWF by country", x = "", y = "country") +
-  theme_bw()
+  theme_minimal()
 plot_deployments_owf_country
 save_plot(plot_deployments_owf_country, folder = path_plots)
 
@@ -175,17 +177,18 @@ plot_deployments_owf_station <-
   labs(title = "acoustic receiver deployments inside OWF by station", 
        x = "", 
        y = "receiver station") +
-  theme_bw() +
+  theme_minimal() +
   theme(axis.text.y = element_blank())
 plot_deployments_owf_station
 save_plot(plot_deployments_owf_station, folder = path_plots)
 
 plot_deployments_owf_station_hist <-
   ggplot(data = deployments_station_sum %>% dplyr::filter(inside_OWF == TRUE & !grepl(",", country))) +
-  geom_histogram(aes(x = deploy_duration_total)) +
+  geom_histogram(aes(y = deploy_duration_total %>% as.numeric() / 365)) +
+  scale_y_reverse(n.breaks = 15) +
   facet_wrap(~country) +
-  labs(title = "deployment duration per receiver station", x = "deployment duration in days") +
-  theme_bw()
+  labs(title = "deployment duration per receiver station", y = "deployment duration in years") +
+  theme_minimal()
 plot_deployments_owf_station_hist
 save_plot(plot_deployments_owf_station_hist, folder = path_plots)
 ```
@@ -193,15 +196,34 @@ save_plot(plot_deployments_owf_station_hist, folder = path_plots)
 To explore what species have been detected in BE OWF, we get all belgian OWF stations and get the acoustic detections for those.
 
 ```{r etn-deployments-owf-BE}
+# plot needed? doesn't seem to make much sense
+## add total deploy time (in yrs)
 
 plot_deployments_owf_station_BE <-
-  ggplot(data = deployments %>% dplyr::filter(inside_OWF == TRUE, country == "Belgium")) +
-  geom_segment(aes(x = deploy_date_time, y = station_name, xend = recover_date_time)) +
-  labs(title = "acoustic receiver deployments inside Belgian OWF by station", x = "", y = "receiver station") +
-  theme_bw()
-plot_deployments_owf_station_BE
-save_plot(plot_deployments_owf_station_BE, folder = path_plots)
+  ggplot() +
+  geom_hline(data = deployment_stations_BE_OWF, aes(yintercept = fct_reorder(station_name %>% as.factor(), first_deployment, .desc = T), color = dist_to_coast_km), linewidth = 2.5) +
+  geom_segment(data = deployments %>% dplyr::filter(inside_OWF == TRUE, country == "Belgium"), aes(x = deploy_date_time, y = station_name, xend = recover_date_time), color = "white", linewidth = 1) +
+  # geom_text(data = deployment_stations_BE_OWF, aes(y = station_name, x = deployment_stations_BE_OWF$first_deployment %>% min() - days(30), label = paste((deploy_duration_total %>% as.numeric / 365) %>% round(digits = 1), "y")), color = "white") +
+  labs(title = "acoustic receiver deployments inside Belgian OWF by station", x = "", y = "receiver station", color = "dist to coast (km)") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 4),
+        legend.position = "left")
+# plot_deployments_owf_station_BE
+save_plot(plot_deployments_owf_station_BE, folder = path_plots, height = 25)
 
+plot_deployments_owf_station_BE_hist <-
+  ggplot() +
+  geom_col(data = deployment_stations_BE_OWF, aes(y = fct_reorder(station_name %>% as.factor(), first_deployment, .desc = T), x = deploy_duration_total %>% as.numeric()  / 365, fill = Concession)) +
+  # geom_segment(data = deployments %>% dplyr::filter(inside_OWF == TRUE, country == "Belgium"), aes(x = deploy_date_time, y = fct_reorder(station_name %>% as.factor(), deploy_date_time, .desc = T), xend = recover_date_time), color = "white", alpha = ) +
+  # geom_text(data = deployment_stations_BE_OWF, aes(y = station_name, x = deployment_stations_BE_OWF$first_deployment %>% min() - days(30), label = paste((deploy_duration_total %>% as.numeric / 365) %>% round(digits = 1), "y")), color = "white") +
+  scale_x_continuous(expand = c(0,0)) +
+  labs(title = "", x = "total deployment in years", y = "") +
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
+# plot_deployments_owf_station_BE_hist
+save_plot(plot_deployments_owf_station_BE, folder = path_plots, height = 25)
+
+plot_deployments_owf_station_BE + plot_deployments_owf_station_BE_hist
 ```
 
 
@@ -222,15 +244,19 @@ deployments %>%
 deployment_stations_BE_OWF_10max <-
   deployment_stations_BE_OWF %>% st_drop_geometry() %>% slice_max(n = 10, order_by = deploy_duration_total)
 
+deployment_stations_BE_OWF_10max %>% 
+  dplyr::mutate(ddt_yrs = (deploy_duration_total %>% as.numeric() / 365) %>% round(digits = 2)) %>%
+  dplyr::select(station_name, deploy_duration_total, ddt_yrs, , dist_to_coast_km)
+
 plot_deployments_owf_station_BE_duration <-
   ggplot(data = deployment_stations_BE_OWF) +
   geom_col(aes(x = fct_reorder(station_name, deploy_duration_total, .desc = TRUE), 
                y = (deploy_duration_total %>% as.numeric()) / 365, fill = dist_to_coast_km)) +
   scale_y_continuous(n.breaks = 10, expand = c(0,0)) +
   labs(title = "Total deployment duration of receiver stations within Belgian OWF", y = "years of deployment", x = "station name", fill = "dist to coast in km") +
-  theme_bw() +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 5))
-plot_deployments_owf_station_BE_duration
+# plot_deployments_owf_station_BE_duration
 save_plot(plot_deployments_owf_station_BE_duration, path_plots)
 
 plot_deployments_owf_station_BE_duration_10max <-
@@ -239,7 +265,7 @@ plot_deployments_owf_station_BE_duration_10max <-
                y = (deploy_duration_total %>% as.numeric()) / 365, fill = dist_to_coast_km)) +
   scale_y_continuous(n.breaks = 10, expand = c(0,0)) +
   labs(title = "Top 10 deployment duration of receiver stations within Belgian OWF", y = "years of deployment", x = "station name", fill = "dist to coast in km") +
-  theme_bw() +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 7))
 plot_deployments_owf_station_BE_duration_10max
 save_plot(plot_deployments_owf_station_BE_duration_10max, path_plots)
@@ -263,15 +289,13 @@ Animals tagged in projects that have one of the following keywords in their name
 
 ```{r etn-animals-animproj}
 
-
-
 animals_anim_proj_species <-
   animals_anim_proj %>%
   dplyr::group_by(scientific_name) %>%
   dplyr::filter(!scientific_name %in% c(NA,"Built-in")) %>%
   dplyr::summarise(n_individual = dplyr::n(),
                    animal_proj_codes = paste0(animal_project_code %>% unique(), collapse= ", ")) %>%
-  dplyr::arrange(desc(n))
+  dplyr::arrange(desc(n_individual))
 
 animals_anim_proj_species %>% print(n = 50)
 ```
@@ -311,9 +335,10 @@ detections_BE_OWF_10longestdeployments_sum_animal %>%
 plot_detections_BE_OWF_10longestdeployments <-
   ggplot(data = detections_BE_OWF_10longestdeployments_sum) +
   geom_point(aes(x = month, y = scientific_name, size = n_det)) +
-  labs(title = "detections in 10 longest active stations inside BE OWF", x = "", y = "species") +
-  theme_bw() +
-  guides(size = 'none')
+  scale_size(transform = "log10", range = c(1, 5)) +
+  labs(title = "detections in 10 longest active stations inside BE OWF", x = "", y = "species", size = "n detections") +
+  theme_minimal() #+
+  # guides(size = 'none')
 plot_detections_BE_OWF_10longestdeployments
 save_plot(plot_detections_BE_OWF_10longestdeployments, path_plots)
 ```
@@ -326,17 +351,17 @@ plot_detections_BE_OWF_seabass <-
   ggplot(data = detections_BE_OWF_seabass_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "seabass detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
-  theme_bw()
-# plot_detections_BE_OWF_seabass
+  theme_minimal()
+plot_detections_BE_OWF_seabass
 save_plot(plot_detections_BE_OWF_seabass, folder = path_plots, height = 18)
-plot_detections_BE_OWF_seabass %>% ggplotly()
+# plot_detections_BE_OWF_seabass %>% ggplotly()
 
 # smoothhound
 plot_detections_BE_OWF_smoothhound <-
   ggplot(data = detections_BE_OWF_smoothhound_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "smoothhound detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
-  theme_bw()
+  theme_minimal()
 plot_detections_BE_OWF_smoothhound
 save_plot(plot_detections_BE_OWF_smoothhound, folder = path_plots, height = 18)
 # plot_detections_BE_OWF_smoothhound %>% ggplotly()
@@ -346,7 +371,7 @@ plot_detections_BE_OWF_thornbackray <-
   ggplot(data = detections_BE_OWF_thornbackray_sum) +
   geom_point(aes(y = animal_id %>% as.factor(), x = month, color = dist_to_coast_km, size = n_det)) +
   labs(x = "", title = "thornbackray detections inside Belgian OWF", y = "animal id", color = "dist to coast in km", size = "det per month") +
-  theme_bw()
+  theme_minimal()
 plot_detections_BE_OWF_thornbackray
 save_plot(plot_detections_BE_OWF_thornbackray, folder = path_plots, height = 18)
 # plot_detections_BE_OWF_thornbackray %>% ggplotly()

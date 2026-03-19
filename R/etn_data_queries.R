@@ -81,7 +81,8 @@ deployments_station_sum <-
                    deploy_duration_total = sum(deploy_duration),
                    deployment_ids = paste0(deployment_id, collapse = ", "),
                    inside_OWF = paste0(inside_OWF %>% unique(), collapse = ", "),
-                   country = paste0(country %>% unique(), collapse = ", "))
+                   country = paste0(country %>% unique(), collapse = ", "),
+                   first_deployment = min(deploy_date_time))
 save_data(deployments_station_sum, folder = path_data)
 
 # get station names from inside Belgian OWF
@@ -92,7 +93,8 @@ deployment_stations_BE_OWF <-
   # median deploy duration
   dplyr::mutate(median_deploy_duration = median(deploy_duration_total),
   # distance to coast
-                dist_to_coast_km = as.numeric(sf::st_distance(geometry, BENL)[, 1]) / 1000 )
+                dist_to_coast_km = as.numeric(sf::st_distance(geometry, BENL)[, 1]) / 1000) %>%
+  sf::st_join(concession_zones_BE)
 
 save_data(deployment_stations_BE_OWF, path_data)
 

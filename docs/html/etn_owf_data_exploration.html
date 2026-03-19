@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Lotte Pohl, lotte.pohl@ugent.be">
 
-<title>etn owf exploration</title>
+<title>Data exploration of European Tracking Network data inside European Offshore Wind Farms</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -82,13 +83,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">etn owf exploration</h1>
+<h1 class="title">Data exploration of European Tracking Network data inside European Offshore Wind Farms</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Lotte Pohl, lotte.pohl@ugent.be </p>
+          </div>
+  </div>
     
   
     
@@ -99,35 +106,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="data-exploration-of-european-tracking-network-data-inside-european-offshore-wind-farms" class="level1">
-<h1>Data exploration of European Tracking Network data inside European Offshore Wind Farms</h1>
-<section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<section id="workspace" class="level3">
-<h3 class="anchored" data-anchor-id="workspace">workspace</h3>
+<p>TODO: - check with moratorium data -&gt; how to present? - put the exact concession zone for deployments</p>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<section id="workspace" class="level2">
+<h2 class="anchored" data-anchor-id="workspace">workspace</h2>
 <p>R packages</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># library(magrittr)</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaflet)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapview)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># library(mgcv)</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># pak::pak("inbo/etn")</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(etn)</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 0. data access</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># library(pak)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pak::pak("inbo/etn")</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(etn)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># library(DBI)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># library(RPostgreSQL)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. data wrangling</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># library(glue)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># library(magrittr)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. spatiotemporal</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. visualisations</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaflet)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapview)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. analyses</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co"># library(mgcv)</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. misc</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>working directory</p>
 <div class="cell">
@@ -136,86 +154,188 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Loading functions</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"R/helpers.R"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"R/helpers.R"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"R/get_acoustic_detections.R"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"R/utils_etn.R"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Setting paths</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>path_spatial <span class="ot">&lt;-</span> <span class="st">"data/spatial"</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>path_data_raw <span class="ot">&lt;-</span> <span class="st">"data_raw"</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>path_data <span class="ot">&lt;-</span> <span class="st">"data"</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>path_plots <span class="ot">&lt;-</span> <span class="st">"docs/plots"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>path_data_raw_etn <span class="ot">&lt;-</span> <span class="st">"data_raw/etn"</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>path_data <span class="ot">&lt;-</span> <span class="st">"data"</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>path_plots <span class="ot">&lt;-</span> <span class="st">"docs/plots"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section>
-<section id="loading-spatial-data" class="level3">
-<h3 class="anchored" data-anchor-id="loading-spatial-data">loading spatial data</h3>
+<p>Loading data</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load_files_to_env</span>(<span class="at">path =</span> path_spatial, <span class="at">file_ext =</span> <span class="st">"gpkg"</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># fix owf polygons</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="do">## </span><span class="al">TODO</span><span class="do">: put into spatial data script</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>windfarms_polygons <span class="ot">&lt;-</span> windfarms_polygons <span class="sc">%&gt;%</span> sf<span class="sc">::</span><span class="fu">st_make_valid</span>()</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>windfarms_polygons_union <span class="ot">&lt;-</span> </span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  windfarms_polygons <span class="sc">%&gt;%</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">%&gt;%</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">geom =</span> <span class="fu">st_union</span>(geom))</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>windfarms_polygons_prod <span class="ot">&lt;-</span> </span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  windfarms_polygons <span class="sc">%&gt;%</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(status <span class="sc">==</span> <span class="st">'Production'</span>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::knit_exit()</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
-</section>
-<section id="etn-data" class="level2">
-<h2 class="anchored" data-anchor-id="etn-data">ETN data</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## connect to ETN R package</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">packageVersion</span>(<span class="st">'etn'</span>) <span class="sc">&gt;=</span> <span class="st">"2.3.0"</span>){</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if 'new' version of etn R package: read .Renviron directly</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">readRenviron</span>(<span class="st">".Renviron"</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.getenv</span>(<span class="st">"ETN_USER"</span>)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.getenv</span>(<span class="st">"ETN_PWD"</span>)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>}<span class="cf">else</span>{</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if 'old' version: create con object</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  con <span class="ot">&lt;-</span> etn<span class="sc">::</span><span class="fu">connect_to_etn</span>(<span class="fu">Sys.getenv</span>(<span class="st">"ETN_USER"</span>), <span class="fu">Sys.getenv</span>(<span class="st">"ETN_PWD"</span>))}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load_files_to_env</span>(<span class="at">path =</span> path_spatial, <span class="at">file_ext =</span> <span class="st">"gpkg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "pUsQHG0Ib4SDob"</code></pre>
+<pre><code>Reading layer `BENL' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/BENL.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 2 features and 14 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 2.546263 ymin: 49.49607 xmax: 7.226894 ymax: 53.55444
+Geodetic CRS:  WGS 84
+Reading layer `BPNS' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/BPNS.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 1 feature and 14 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 2.238333 ymin: 51.03976 xmax: 4.402039 ymax: 51.87611
+Geodetic CRS:  WGS 84
+Multiple layers are present in data source /home/onyxia/work/chapter1_owf_spaceuse/data/spatial/concession_zones_BE.gpkg, reading layer `concession_zones'.
+Use `st_layers' to list all layer names and their type in a data source.
+Set the `layer' argument in `st_read' to read a particular layer.</code></pre>
 </div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in CPL_read_ogr(dsn, layer, query, as.character(options), quiet, :
+automatically selected the first layer in a data source containing more than
+one.</code></pre>
 </div>
-<section id="acoustic-receiver-deployments" class="level3">
-<h3 class="anchored" data-anchor-id="acoustic-receiver-deployments">acoustic receiver deployments</h3>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `concession_zones' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/concession_zones_BE.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 9 features and 2 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 479616 ymin: 5704261 xmax: 505792.8 ymax: 5732140
+Projected CRS: WGS 84 / UTM zone 31N
+Reading layer `export_cables' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/export_cables.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 13 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 480054.7 ymin: 5676812 xmax: 512253.8 ymax: 5729048
+Projected CRS: WGS 84 / UTM zone 31N
+Reading layer `infield_cables' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/infield_cables.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 219 features and 2 fields
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 479698 ymin: 5704324 xmax: 505502.8 ymax: 5731997
+Projected CRS: WGS 84 / UTM zone 31N
+Reading layer `shipwrecks' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/shipwrecks.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 312 features and 5 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: 2.305343 ymin: 51.11496 xmax: 3.331701 ymax: 51.84799
+Geodetic CRS:  WGS 84
+Reading layer `Substations' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/Substations.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 10 features and 8 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: 480922.2 ymin: 5706927 xmax: 499405.6 ymax: 5729054
+Projected CRS: WGS 84 / UTM zone 31N
+Reading layer `windfarms_points_BE' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/windfarms_points_BE.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 397 features and 7 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: 479703.9 ymin: 5704363 xmax: 505502.8 ymax: 5731999
+Projected CRS: WGS 84 / UTM zone 31N
+Reading layer `windfarms_points' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/windfarms_points.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 438 features and 10 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -18.08 ymin: 27.65 xmax: 29.75 ymax: 65.668
+Geodetic CRS:  WGS 84
+Reading layer `windfarms_polygons' from data source 
+  `/home/onyxia/work/chapter1_owf_spaceuse/data/spatial/windfarms_polygons.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 600 features and 13 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: -16.58968 ymin: 27.73303 xmax: 24.73779 ymax: 65.47056
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded 10 object(s): BENL, BPNS, concession_zones_BE, export_cables, infield_cables, shipwrecks, Substations, windfarms_points_BE, windfarms_points, windfarms_polygons</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load_files_to_env</span>(<span class="at">path =</span> path_data_raw_etn, <span class="at">file_ext =</span> <span class="st">"rds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded 8 object(s): animals_seabass_raw, animals_seabass, detections_BE_OWF_catshark, detections_BE_OWF_mackerel, detections_BE_OWF_seabass, detections_BE_OWF_smoothhound, detections_BE_OWF_thornbackray, detections_progress</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load_files_to_env</span>(<span class="at">path =</span> path_data, <span class="at">file_ext =</span> <span class="st">"rds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded 12 object(s): animals_anim_proj, animals_seabass, deployment_stations_BE_OWF, deployments_station_sum, deployments, detections_BE_OWF_10longestdeployments_sum_animal, detections_BE_OWF_10longestdeployments_sum, detections_BE_OWF_seabass_sum, detections_BE_OWF_smoothhound_sum, detections_BE_OWF_thornbackray_sum, detections_seabass_sum, etn_anim_proj_key</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::knit_exit()</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="spatial-owf-data" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-owf-data">spatial OWF data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>deployments_raw <span class="ot">&lt;-</span>  etn<span class="sc">::</span><span class="fu">get_acoustic_deployments</span>()</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">save_data</span>(deployments_raw, <span class="at">folder =</span> path_data_raw)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>deployments <span class="ot">&lt;-</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  deployments_raw <span class="sc">%&gt;%</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove deployments with missing lat or lon</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(deploy_latitude) <span class="sc">|</span> <span class="sc">!</span><span class="fu">is.na</span>(deploy_longitude)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># transform lat/lon into geom</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">lat =</span> deploy_latitude,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">lon =</span> deploy_longitude) <span class="sc">%&gt;%</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  sf<span class="sc">::</span><span class="fu">st_as_sf</span>(., <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"lon"</span>, <span class="st">"lat"</span>), <span class="at">crs =</span> <span class="dv">4326</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make new col with boolean that is TRUE if inside OWF</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">inside_OWF =</span> <span class="fu">lengths</span>(sf<span class="sc">::</span><span class="fu">st_within</span>(geometry, windfarms_polygons_prod)) <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  sf<span class="sc">::</span><span class="fu">st_join</span>(windfarms_polygons_prod, <span class="at">join =</span> sf<span class="sc">::</span>st_within) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove duplicated deployments</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">distinct</span>(deployment_id, <span class="at">.keep_all =</span> T) <span class="sc">%&gt;%</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fill recover_date_time with current date </span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">recover_date_time =</span> dplyr<span class="sc">::</span><span class="fu">if_else</span>(recover_date_time <span class="sc">%&gt;%</span> <span class="fu">is.na</span>(), <span class="fu">Sys.time</span>(), recover_date_time))</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="fu">save_data</span>(deployments, <span class="at">folder =</span> path_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fix owf polygons</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="do">## </span><span class="al">TODO</span><span class="do">: put into spatial data script</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>windfarms_polygons <span class="ot">&lt;-</span> windfarms_polygons <span class="sc">%&gt;%</span> sf<span class="sc">::</span><span class="fu">st_make_valid</span>()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>windfarms_polygons_union <span class="ot">&lt;-</span> </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  windfarms_polygons <span class="sc">%&gt;%</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">%&gt;%</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">geom =</span> <span class="fu">st_union</span>(geom))</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>windfarms_polygons_prod <span class="ot">&lt;-</span> </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  windfarms_polygons <span class="sc">%&gt;%</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(status <span class="sc">==</span> <span class="st">'Production'</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::knit_exit()</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(windfarms_polygons_union) <span class="sc">+</span> windfarms_polygons_prod</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="etn-data" class="level1">
+<h1>ETN data</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to the etn postgres db</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># pgdrv &lt;- dbDriver(drvName = "PostgreSQL")</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># con_ETNdb &lt;-DBI::dbConnect(pgdrv,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                    dbname="ETN",</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                    host="pgetn.vliz.be", </span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                    port=5432,</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                    user = Sys.getenv("ETN_USER"),</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                    password = Sys.getenv("ETN_PWD"))</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># # troubleshoooting - probably an IP whitelisting issue</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="deployments-of-acoustic-receivers" class="level2">
+<h2 class="anchored" data-anchor-id="deployments-of-acoustic-receivers">deployments of acoustic receivers</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># # get unique deployment ids</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># deployment_ids_owf &lt;- </span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   deployments %&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     dplyr::filter(inside_OWF == TRUE) %&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     dplyr::select(deployment_id, deploy_date_time, recover_date_time, country) %&gt;% </span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     sf::st_drop_geometry() %&gt;%</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#     unique()</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"># deployment_stations_BE_OWF_slice1 &lt;-</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># deployment_stations_BE_OWF %&gt;% </span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::filter(deploy_duration_total &gt; median_deploy_duration) %&gt;%</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(station_name)</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># deployment_stations_BE_OWF %&gt;% st_drop_geometry() %&gt;% slice_max(n = 5, order_by = deploy_duration_total) %&gt;% dplyr::select(station_name) %&gt;% pull() -&gt; station_names</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>let’s see when and were the OWF deployments were</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_country <span class="ot">&lt;-</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployments <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> deploy_date_time, <span class="at">y =</span> country, <span class="at">xend =</span> recover_date_time)) <span class="sc">+</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"acoustic receiver deployments inside OWF by country"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"country"</span>) <span class="sc">+</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_country</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_country <span class="ot">&lt;-</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployments <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> deploy_date_time, <span class="at">y =</span> country, <span class="at">xend =</span> recover_date_time)) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"acoustic receiver deployments inside OWF by country"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"country"</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_country</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -223,14 +343,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_country, <span class="at">folder =</span> path_plots)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station <span class="ot">&lt;-</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployments <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span>)) <span class="sc">+</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> deploy_date_time, <span class="at">y =</span> station_name, <span class="at">xend =</span> recover_date_time, <span class="at">color =</span> country)) <span class="sc">+</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"acoustic receiver deployments inside OWF by station"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"receiver station"</span>) <span class="sc">+</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_country, <span class="at">folder =</span> path_plots)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station <span class="ot">&lt;-</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployments <span class="sc">%&gt;%</span> </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>           dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">","</span>, country)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>             <span class="co"># This creates a factor where levels are sorted by Country, then Station</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">station_ordered =</span> <span class="fu">factor</span>(station_name, </span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">unique</span>(station_name[<span class="fu">order</span>(country, deploy_date_time)])))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> deploy_date_time, </span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">y =</span> station_ordered,  <span class="co"># &lt;-- Changed from station_name to station_ordered</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">xend =</span> recover_date_time, </span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>                   <span class="at">color =</span> country)) <span class="sc">+</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"acoustic receiver deployments inside OWF by station"</span>, </span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">""</span>, </span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"receiver station"</span>) <span class="sc">+</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -238,28 +370,348 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station, <span class="at">folder =</span> path_plots)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station, <span class="at">folder =</span> path_plots)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_hist <span class="ot">&lt;-</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployments_station_sum <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">","</span>, country))) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> deploy_duration_total <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>() <span class="sc">/</span> <span class="dv">365</span>)) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>(<span class="at">n.breaks =</span> <span class="dv">15</span>) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>country) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"deployment duration per receiver station"</span>, <span class="at">y =</span> <span class="st">"deployment duration in years"</span>) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_hist</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
 </div>
-<section id="summary-stats" class="level4">
-<h4 class="anchored" data-anchor-id="summary-stats">summary stats</h4>
-<p>TODO ideas: cumulative days of deployment, overall area covered, # of deployments</p>
-</section>
-</section>
-<section id="detections" class="level3">
-<h3 class="anchored" data-anchor-id="detections">detections</h3>
-</section>
-<section id="tests" class="level3">
-<h3 class="anchored" data-anchor-id="tests">tests</h3>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-deployments-owf-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station_hist, <span class="at">folder =</span> path_plots)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
+</div>
+</div>
+<p>To explore what species have been detected in BE OWF, we get all belgian OWF stations and get the acoustic detections for those.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># b &lt;- ggplot(mtcars, aes(wt, mpg)) +</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_point()</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># df &lt;- data.frame(x1 = 2.62, x2 = 3.57, y1 = 21.0, y2 = 15.0)</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># b +</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_curve(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "curve"), data = df) +</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "segment"), data = df)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot needed? doesn't seem to make much sense</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="do">## add total deploy time (in yrs)</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE <span class="ot">&lt;-</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">data =</span> deployment_stations_BE_OWF, <span class="fu">aes</span>(<span class="at">yintercept =</span> <span class="fu">fct_reorder</span>(station_name <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), first_deployment, <span class="at">.desc =</span> T), <span class="at">color =</span> dist_to_coast_km), <span class="at">linewidth =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> deployments <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span>, country <span class="sc">==</span> <span class="st">"Belgium"</span>), <span class="fu">aes</span>(<span class="at">x =</span> deploy_date_time, <span class="at">y =</span> station_name, <span class="at">xend =</span> recover_date_time), <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_text(data = deployment_stations_BE_OWF, aes(y = station_name, x = deployment_stations_BE_OWF$first_deployment %&gt;% min() - days(30), label = paste((deploy_duration_total %&gt;% as.numeric / 365) %&gt;% round(digits = 1), "y")), color = "white") +</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"acoustic receiver deployments inside Belgian OWF by station"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"receiver station"</span>, <span class="at">color =</span> <span class="st">"dist to coast (km)"</span>) <span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">4</span>),</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"left"</span>)</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_deployments_owf_station_BE</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station_BE, <span class="at">folder =</span> path_plots, <span class="at">height =</span> <span class="dv">25</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE_hist <span class="ot">&lt;-</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">data =</span> deployment_stations_BE_OWF, <span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">fct_reorder</span>(station_name <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), first_deployment, <span class="at">.desc =</span> T), <span class="at">x =</span> deploy_duration_total <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>()  <span class="sc">/</span> <span class="dv">365</span>, <span class="at">fill =</span> Concession)) <span class="sc">+</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_segment(data = deployments %&gt;% dplyr::filter(inside_OWF == TRUE, country == "Belgium"), aes(x = deploy_date_time, y = fct_reorder(station_name %&gt;% as.factor(), deploy_date_time, .desc = T), xend = recover_date_time), color = "white", alpha = ) +</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_text(data = deployment_stations_BE_OWF, aes(y = station_name, x = deployment_stations_BE_OWF$first_deployment %&gt;% min() - days(30), label = paste((deploy_duration_total %&gt;% as.numeric / 365) %&gt;% round(digits = 1), "y")), color = "white") +</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">"total deployment in years"</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_deployments_owf_station_BE_hist</span></span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station_BE, <span class="at">folder =</span> path_plots, <span class="at">height =</span> <span class="dv">25</span>)</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE <span class="sc">+</span> plot_deployments_owf_station_BE_hist</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-deployments-owf-BE-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="summary-stats" class="level3">
+<h3 class="anchored" data-anchor-id="summary-stats">summary stats</h3>
+<p>TODO ideas: cumulative days of deployment, overall area covered, dist to coast, # of deployments</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many unique stations are there?</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>deployments <span class="sc">%&gt;%</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(inside_OWF <span class="sc">==</span> <span class="cn">TRUE</span>, country <span class="sc">==</span> <span class="st">"Belgium"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(station_name) <span class="sc">%&gt;%</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>() <span class="co"># </span><span class="al">TODO</span><span class="co"> make part of the summary stats</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 191</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># which receiver stations have had hydrophones deployed for the longest?</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>deployment_stations_BE_OWF_10max <span class="ot">&lt;-</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  deployment_stations_BE_OWF <span class="sc">%&gt;%</span> <span class="fu">st_drop_geometry</span>() <span class="sc">%&gt;%</span> <span class="fu">slice_max</span>(<span class="at">n =</span> <span class="dv">10</span>, <span class="at">order_by =</span> deploy_duration_total)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>deployment_stations_BE_OWF_10max <span class="sc">%&gt;%</span> </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">ddt_yrs =</span> (deploy_duration_total <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>() <span class="sc">/</span> <span class="dv">365</span>) <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(station_name, deploy_duration_total, ddt_yrs, , dist_to_coast_km)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 4
+   station_name               deploy_duration_total ddt_yrs dist_to_coast_km
+   &lt;chr&gt;                      &lt;drtn&gt;                  &lt;dbl&gt;            &lt;dbl&gt;
+ 1 bpns-LottoBuoy             4791.198 days           13.1              26.7
+ 2 PC4C-C05-8                 3178.672 days            8.71             43.4
+ 3 PC4C-C08-1                 2822.672 days            7.73             42.1
+ 4 FISHINTEL_OHVS2            2556.939 days            7.01             45.0
+ 5 FISHINTEL_OHVS4            2452.211 days            6.72             44.8
+ 6 FISHINTEL_OHVS1            2337.405 days            6.4              44.8
+ 7 FISHINTEL_OHVS3            2292.775 days            6.28             45.0
+ 8 bpns-Belwindreefballs-CPOD 2231.118 days            6.11             46.0
+ 9 JJ_AB78                    1847.089 days            5.06             43.0
+10 bpns-BelwindReefballs      1105.438 days            3.03             46.0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE_duration <span class="ot">&lt;-</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployment_stations_BE_OWF) <span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">fct_reorder</span>(station_name, deploy_duration_total, <span class="at">.desc =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> (deploy_duration_total <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>()) <span class="sc">/</span> <span class="dv">365</span>, <span class="at">fill =</span> dist_to_coast_km)) <span class="sc">+</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">n.breaks =</span> <span class="dv">10</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Total deployment duration of receiver stations within Belgian OWF"</span>, <span class="at">y =</span> <span class="st">"years of deployment"</span>, <span class="at">x =</span> <span class="st">"station name"</span>, <span class="at">fill =</span> <span class="st">"dist to coast in km"</span>) <span class="sc">+</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">5</span>))</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_deployments_owf_station_BE_duration</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station_BE_duration, path_plots)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE_duration_10max <span class="ot">&lt;-</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> deployment_stations_BE_OWF_10max) <span class="sc">+</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">fct_reorder</span>(station_name, deploy_duration_total, <span class="at">.desc =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> (deploy_duration_total <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>()) <span class="sc">/</span> <span class="dv">365</span>, <span class="at">fill =</span> dist_to_coast_km)) <span class="sc">+</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">n.breaks =</span> <span class="dv">10</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Top 10 deployment duration of receiver stations within Belgian OWF"</span>, <span class="at">y =</span> <span class="st">"years of deployment"</span>, <span class="at">x =</span> <span class="st">"station name"</span>, <span class="at">fill =</span> <span class="st">"dist to coast in km"</span>) <span class="sc">+</span></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">25</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">7</span>))</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>plot_deployments_owf_station_BE_duration_10max</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-deployments-summary-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_deployments_owf_station_BE_duration_10max, path_plots)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
+</section>
+<section id="animal-projects" class="level2">
+<h2 class="anchored" data-anchor-id="animal-projects">animal projects</h2>
+<p>Let’s check for relevant animal projects</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the following keywords are considered in R/etn_data_queries.R</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>animal_proj_keywords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"elasmo"</span>,<span class="st">"elasmobranch"</span>, <span class="st">"seabass"</span>, <span class="st">"mackerel"</span>, <span class="st">"OWF"</span>, <span class="st">"VLIZ"</span>, <span class="st">"shark"</span>, <span class="st">"ray"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="animals" class="level2">
+<h2 class="anchored" data-anchor-id="animals">animals</h2>
+<p>TODO: put somewhere else (doesn’t follow the flow of thought here)</p>
+<p>Animals tagged in projects that have one of the following keywords in their name: elasmo, elasmobranch, seabass, mackerel, OWF, VLIZ, shark, ray:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>animals_anim_proj_species <span class="ot">&lt;-</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  animals_anim_proj <span class="sc">%&gt;%</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(scientific_name) <span class="sc">%&gt;%</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span>scientific_name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="cn">NA</span>,<span class="st">"Built-in"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">n_individual =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">animal_proj_codes =</span> <span class="fu">paste0</span>(animal_project_code <span class="sc">%&gt;%</span> <span class="fu">unique</span>(), <span class="at">collapse=</span> <span class="st">", "</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(n_individual))</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>animals_anim_proj_species <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 23 × 3
+   scientific_name         n_individual animal_proj_codes                       
+   &lt;chr&gt;                          &lt;int&gt; &lt;chr&gt;                                   
+ 1 Scyliorhinus canicula            194 FISHOWF, FISHOWF+, sharks_vliz          
+ 2 Mustelus asterias                148 2025-28_NorthSeaNL_MONS_Elasmo, ADST-Sh…
+ 3 Scomber scombrus                 135 mackerel_dtu, mackerel_geomar, mackerel…
+ 4 Raja undulata                     98 FISHOWF, FISHOWF+, PTN/ATLAZUL/rays     
+ 5 Dicentrarchus labrax              66 2025_IJmuidenRotterdam_SeaBass, FISHOWF…
+ 6 Raja clavata                      55 FISHOWF, FISHOWF+, PTN/ATLAZUL/rays, VF…
+ 7 Homarus gammarus                  54 FISHOWF                                 
+ 8 Squalus acanthias                 40 sharks_dtu                              
+ 9 Muraena helena                    19 PTN/PROTECT2013/Moray                   
+10 Gadus morhua                      18 ADST-Shark, COD_OWF, IMR_OWF_animals    
+11 Lamna nasus                       18 FISHOWF, FISHOWF+                       
+12 Scyliorhinus stellaris            17 FISHOWF, FISHOWF+                       
+13 Raja brachyura                    16 FISHOWF+, thornback_vliz                
+14 Prionace glauca                   15 Bluesharks_Basque, FISHOWF, FISHOWF+    
+15 Spondyliosoma cantharus           12 FISHOWF+                                
+16 Thunnus thynnus                   11 FISHOWF, FISHOWF+                       
+17 range test                        10 COD_OWF_range_test                      
+18 Galeorhinus galeus                 6 2025-28_NorthSeaNL_MONS_Elasmo, FISHOWF+
+19 Raja asterias                      4 FISHOWF                                 
+20 Merluccius merluccius              3 FISHOWF                                 
+21 Raja montagui                      3 FISHOWF+, PTN/ATLAZUL/rays              
+22 Dasyatis pastinaca                 2 2025-28_NorthSeaNL_MONS_Elasmo          
+23 Tetrapturus belone                 1 FISHOWF+                                </code></pre>
+</div>
+</div>
+</section>
+<section id="detections" class="level2">
+<h2 class="anchored" data-anchor-id="detections">detections</h2>
+<p>query acoustic detections at the acoustic receiver deployments inside OWF</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tests</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># test &lt;- get_acoustic_detections2(deployment_id = 3336)</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># test$scientific_name %&gt;% unique()</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># # try to run biiig query from all stations within BE OWF</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># detections_OWF_BE &lt;-</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   etn::get_acoustic_detections(station_name = </span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                                  deployment_stations_BE_OWF %&gt;% </span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                                  dplyr::filter(deploy_duration_total &gt; median_deploy_duration) %&gt;%</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                                  dplyr::select(station_name))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Checking the acoustic detections at the stations that have had receivers deployed the longest</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>detections_BE_OWF_10longestdeployments_sum_animal <span class="sc">%&gt;%</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(scientific_name) <span class="sc">%&gt;%</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">n_det =</span> <span class="fu">sum</span>(n_det),</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">n_ind =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">first_det =</span> <span class="fu">min</span>(first_det) <span class="sc">%&gt;%</span> <span class="fu">as.Date</span>(),</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">last_det =</span> <span class="fu">max</span>(last_det) <span class="sc">%&gt;%</span> <span class="fu">as.Date</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(n_det)) <span class="sc">%&gt;%</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 19 × 5
+   scientific_name       n_det n_ind first_det  last_det  
+   &lt;chr&gt;                 &lt;int&gt; &lt;int&gt; &lt;date&gt;     &lt;date&gt;    
+ 1 Dicentrarchus labrax 411612    61 2018-10-09 2025-08-29
+ 2 Gadus morhua         220343    42 2015-07-31 2020-01-09
+ 3 Limanda limanda        1331     1 2016-09-06 2017-06-02
+ 4 Raja clavata            471     3 2018-08-08 2020-08-11
+ 5 Thunnus thynnus          57     8 2022-08-21 2024-12-23
+ 6 Alosa fallax             48     7 2020-09-04 2024-01-18
+ 7 Salmo trutta             32    11 2021-10-13 2025-02-04
+ 8 Scomber scombrus         30     3 2024-07-10 2025-07-07
+ 9 Salvelinus alpinus       14     5 2022-09-11 2024-12-18
+10 Anguilla anguilla        11    10 2022-09-01 2024-10-18
+11 Palinurus elephas        10     3 2022-07-17 2024-10-04
+12 Diplodus sargus           9     5 2022-08-14 2024-10-23
+13 Mustelus asterias         9     2 2018-08-01 2018-08-19
+14 Salmo salar               4     4 2023-01-12 2024-12-20
+15 Leuciscus idus            3     1 2022-06-29 2022-10-04
+16 Acipenser oxyrinchus      2     2 2024-10-05 2024-10-20
+17 Clupea harengus           1     1 2024-11-10 2024-11-10
+18 Octopus vulgaris          1     1 2022-09-19 2022-09-19
+19 Sparus aurata             1     1 2022-08-06 2022-08-06</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_10longestdeployments <span class="ot">&lt;-</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> detections_BE_OWF_10longestdeployments_sum) <span class="sc">+</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> month, <span class="at">y =</span> scientific_name, <span class="at">size =</span> n_det)) <span class="sc">+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size</span>(<span class="at">transform =</span> <span class="st">"log10"</span>, <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>)) <span class="sc">+</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"detections in 10 longest active stations inside BE OWF"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"species"</span>, <span class="at">size =</span> <span class="st">"n detections"</span>) <span class="sc">+</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="co">#+</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># guides(size = 'none')</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_10longestdeployments</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-detections-longest-deploy-stations-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_detections_BE_OWF_10longestdeployments, path_plots)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>abacus plots per species</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_seabass <span class="ot">&lt;-</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> detections_BE_OWF_seabass_sum) <span class="sc">+</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="at">x =</span> month, <span class="at">color =</span> dist_to_coast_km, <span class="at">size =</span> n_det)) <span class="sc">+</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">title =</span> <span class="st">"seabass detections inside Belgian OWF"</span>, <span class="at">y =</span> <span class="st">"animal id"</span>, <span class="at">color =</span> <span class="st">"dist to coast in km"</span>, <span class="at">size =</span> <span class="st">"det per month"</span>) <span class="sc">+</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_seabass</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-detections-species-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_detections_BE_OWF_seabass, <span class="at">folder =</span> path_plots, <span class="at">height =</span> <span class="dv">18</span>)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_detections_BE_OWF_seabass %&gt;% ggplotly()</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothhound</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_smoothhound <span class="ot">&lt;-</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> detections_BE_OWF_smoothhound_sum) <span class="sc">+</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="at">x =</span> month, <span class="at">color =</span> dist_to_coast_km, <span class="at">size =</span> n_det)) <span class="sc">+</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">title =</span> <span class="st">"smoothhound detections inside Belgian OWF"</span>, <span class="at">y =</span> <span class="st">"animal id"</span>, <span class="at">color =</span> <span class="st">"dist to coast in km"</span>, <span class="at">size =</span> <span class="st">"det per month"</span>) <span class="sc">+</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_smoothhound</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-detections-species-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_detections_BE_OWF_smoothhound, <span class="at">folder =</span> path_plots, <span class="at">height =</span> <span class="dv">18</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_detections_BE_OWF_smoothhound %&gt;% ggplotly()</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="co"># thornbackray</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_thornbackray <span class="ot">&lt;-</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> detections_BE_OWF_thornbackray_sum) <span class="sc">+</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="at">x =</span> month, <span class="at">color =</span> dist_to_coast_km, <span class="at">size =</span> n_det)) <span class="sc">+</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">title =</span> <span class="st">"thornbackray detections inside Belgian OWF"</span>, <span class="at">y =</span> <span class="st">"animal id"</span>, <span class="at">color =</span> <span class="st">"dist to coast in km"</span>, <span class="at">size =</span> <span class="st">"det per month"</span>) <span class="sc">+</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>plot_detections_BE_OWF_thornbackray</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/etn-detections-species-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_detections_BE_OWF_thornbackray, <span class="at">folder =</span> path_plots, <span class="at">height =</span> <span class="dv">18</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_detections_BE_OWF_thornbackray %&gt;% ggplotly()</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Some summary statistics</p>
+<p>Seabass has the most detections inside Belgian OWF. So let’s look a bit more in detail into those detections</p>
+<section id="seabass" class="level3">
+<h3 class="anchored" data-anchor-id="seabass">seabass</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>plot_detections_seabass <span class="ot">&lt;-</span> </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># animal tagging</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> animals_seabass, <span class="fu">aes</span>(<span class="at">x =</span> release_date_time, <span class="at">y =</span> <span class="fu">fct_reorder</span>(animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="fu">paste</span>(animal_project_code, release_date_time,  <span class="at">sep =</span> <span class="st">"_"</span>), <span class="at">.desc =</span> T), <span class="at">color =</span> animal_project_code), <span class="at">shape =</span> <span class="dv">4</span>, <span class="at">size =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># all etn detections (sum)</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> detections_seabass_sum, <span class="fu">aes</span>(<span class="at">x =</span> month, <span class="at">y =</span> animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="at">size =</span> n_det)) <span class="sc">+</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># # BE OWF detections</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> detections_BE_OWF_seabass_sum, <span class="fu">aes</span>(<span class="at">x =</span> month, <span class="at">y =</span> animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="at">size =</span> n_det), <span class="at">color =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># animal tagging</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> animals_seabass, <span class="fu">aes</span>(<span class="at">x =</span> release_date_time, <span class="at">y =</span> <span class="fu">fct_reorder</span>(animal_id <span class="sc">%&gt;%</span> <span class="fu">as.factor</span>(), <span class="fu">paste</span>(animal_project_code, release_date_time,  <span class="at">sep =</span> <span class="st">"_"</span>), <span class="at">.desc =</span> T), <span class="at">color =</span> animal_project_code), <span class="at">shape =</span> <span class="dv">4</span>, <span class="at">size =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size</span>(<span class="at">transform =</span> <span class="st">"log10"</span>, <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"seabass detections inside/outside OWF"</span>, <span class="at">y =</span> <span class="st">"animal id"</span>, <span class="at">x =</span> <span class="st">""</span>, <span class="at">color =</span> <span class="st">"animal project code"</span>, <span class="at">size =</span> <span class="st">"n detections (per month)"</span>) <span class="sc">+</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>plot_detections_seabass</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="etn_owf_data_exploration_files/figure-html/detections-seabass-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot</span>(plot_detections_seabass, <span class="at">height =</span> <span class="dv">20</span>, <span class="at">folder =</span> path_plots)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">tests</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># b &lt;- ggplot(mtcars, aes(wt, mpg)) +</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_point()</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># df &lt;- data.frame(x1 = 2.62, x2 = 3.57, y1 = 21.0, y2 = 15.0)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># b +</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_curve(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "curve"), data = df) +</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2, colour = "segment"), data = df)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 </section>
 
