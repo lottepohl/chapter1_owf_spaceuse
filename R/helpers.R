@@ -87,42 +87,103 @@ save_plot <- function(plot, folder, file_ext = "pdf", height = 15, width = 18, u
 #   }
 # }
 
-etn_det_per_tag <- function(animals){
-  detections_all <- tibble()
+etn_det_per_tag <- function(animals, output_file = file.path(path_data_raw_etn, "detections_progress.rds"), save_interval = 5) {
   
-  # Loop over row indices
-  for(i in seq_len(nrow(animals))){
-    
-    # Extract the specific row
+  # Resume if exists
+  if(file.exists(output_file)) {
+    detections_all <- readRDS(output_file)
+    # Extract already processed tag serial numbers
+    processed_tags <- unique(detections_all$tag_serial_number)
+    message("🔄 Resuming from ", nrow(detections_all), " existing detections")
+    message("📋 Already processed tags: ", length(processed_tags))
+  } else {
+    detections_all <- tibble()
+    processed_tags <- character(0)
+  }
+  
+  # Save on exit (even if interrupted)
+  on.exit({
+    saveRDS(detections_all, output_file)
+    message("💾 Final progress saved to: ", output_file)
+  })
+  
+  for(i in seq_len(nrow(animals))) {
     animal_row <- animals[i, ]
     serial_num <- animal_row$tag_serial_number
     
-    # Wrap the API call in tryCatch to handle errors gracefully
+    # Print the tag being processed
+    message("🔍 Processing tag: ", serial_num, " (iteration ", i, "/", nrow(animals), ")")
+    
+    # Skip if already processed
+    if(serial_num %in% processed_tags) {
+      message("⏭️  Skipping (already processed): ", serial_num)
+      next
+    }
+    
+    # Try to fetch data
     detections_animal <- tryCatch({
-      
-      # Attempt to fetch data
       etn::get_acoustic_detections(tag_serial_number = serial_num)
-      
     }, error = function(e) {
-      
-      # If an error occurs:
-      message("⚠️  Failed to fetch data for tag: ", serial_num, " | Error: ", e$message)
-      
-      # Return an empty tibble with the correct structure (optional but good practice)
-      # If you don't know the structure, returning NULL or an empty tibble() works 
-      # but rbind might complain if columns don't match. 
-      # Safest is to return an empty tibble() and filter later, or return NULL.
-      return(tibble()) 
+      message("⚠️  Failed for tag: ", serial_num, " | Error: ", e$message)
+      return(tibble())
     })
     
-    # Only combine if we got data (check if it's not empty)
+    # Combine if successful
     if(nrow(detections_animal) > 0) {
       detections_all <- rbind(detections_all, detections_animal)
+      # Update processed tags list
+      processed_tags <- c(processed_tags, serial_num)
+    }
+    
+    # Save periodically
+    if(i %% save_interval == 0) {
+      saveRDS(detections_all, output_file)
+      message("💾 Progress saved at iteration ", i, " (", nrow(detections_all), " detections)")
     }
   }
   
   return(detections_all)
 }
-# animals_test <- animals_seabass %>% head(n=10)
+
+# animals_test <- animals_seabass %>% tail(n=20)
 # animals_test
-# detections_test <- etn_det_per_tag(animals_test)
+# detections_test <- etn_det_per_tag(animals = animals_test)
+
+
+# etn_det_per_tag <- function(animals){
+#   detections_all <- tibble()
+#   
+#   # Loop over row indices
+#   for(i in seq_len(nrow(animals))){
+#     
+#     # Extract the specific row
+#     animal_row <- animals[i, ]
+#     serial_num <- animal_row$tag_serial_number
+#     
+#     # Wrap the API call in tryCatch to handle errors gracefully
+#     detections_animal <- tryCatch({
+#       
+#       # Attempt to fetch data
+#       etn::get_acoustic_detections(tag_serial_number = serial_num)
+#       
+#     }, error = function(e) {
+#       
+#       # If an error occurs:
+#       message("⚠️  Failed to fetch data for tag: ", serial_num, " | Error: ", e$message)
+#       
+#       # Return an empty tibble with the correct structure (optional but good practice)
+#       # If you don't know the structure, returning NULL or an empty tibble() works 
+#       # but rbind might complain if columns don't match. 
+#       # Safest is to return an empty tibble() and filter later, or return NULL.
+#       return(tibble()) 
+#     })
+#     
+#     # Only combine if we got data (check if it's not empty)
+#     if(nrow(detections_animal) > 0) {
+#       detections_all <- rbind(detections_all, detections_animal)
+#     }
+#   }
+#   
+#   return(detections_all)
+# }
+

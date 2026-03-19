@@ -197,6 +197,7 @@ animals_seabass <-
   animals_seabass_raw %>%
     remove_double_cols() %>%
     dplyr::filter(tag_serial_number != "")
+save_data(animals_seabass, path_data)
 
 tags_seabass <-
   etn::get_tags(tag_serial_number = animals_seabass$tag_serial_number)
@@ -210,7 +211,21 @@ tags_seabass <-
 # animal 19855 and 19843 were both tagged with tag 1384335
 
 detections_seabass <- etn_det_per_tag(animals_seabass)
-detections_outside_OWF_seabass <- etn::get_acoustic_detections(scientific_name = "Dicentrarchus labrax", animal_project_code = animal_proj_seabass)
+
+detections_seabass <- load_data("detections_progress", path_data_raw_etn)
+
+detections_seabass_sum <-
+  detections_seabass %>%
+  dplyr::mutate(month = floor_date(date_time, unit = "month")) %>%
+  dplyr::group_by(animal_id, station_name, month) %>%
+  dplyr::summarise(n_det = dplyr::n(),
+                   animal_proj_code = paste0(animal_project_code %>% unique(), collapse = ","),
+                   tag_serial_number = paste0(tag_serial_number %>% unique(), collapse = ","),
+                   scientific_name = scientific_name %>% unique())
+
+save_data(detections_seabass_sum, path_data)
+
+# detections_outside_OWF_seabass <- etn::get_acoustic_detections(scientific_name = "Dicentrarchus labrax", animal_project_code = animal_proj_seabass)
 
 ## catshark -------------------------------------------------------------
 
