@@ -5,6 +5,12 @@ format: html
 editor: visual
 editor_options: 
   chunk_output_type: console
+execute:
+  echo: false
+  warning: false
+  error: false
+  output: true
+  
 ---
 
 TODO:
@@ -18,7 +24,7 @@ TODO:
 R packages
 
 ```{r pgk}
-#| output: false
+#| echo: true
 
 # 0. data access
 # install.packages("pak")
@@ -61,12 +67,15 @@ working directory
 ```{r wd}
 # Set working directory to project root
 opts_knit$set(root.dir = here::here())
+# suppress all messages
+knitr::opts_chunk$set(message = FALSE)
 ```
 
 
 Loading functions
 
 ```{r fun}
+#| echo: true
 source("R/helpers.R")
 source("R/get_acoustic_detections.R")
 source("R/utils_etn.R")
@@ -74,7 +83,8 @@ source("R/utils_etn.R")
 
 Setting paths
 
-```{r var}
+```{r paths}
+#| echo: true
 path_spatial <- "data/spatial"
 path_data_raw <- "data_raw"
 path_data_raw_etn <- "data_raw/etn"
@@ -85,6 +95,7 @@ path_plots <- "docs/plots"
 Loading data
 
 ```{r load-data-into-env}
+#| echo: true
 load_files_to_env(path = path_spatial, file_ext = "gpkg")
 load_files_to_env(path = path_data_raw_etn, file_ext = "rds")
 load_files_to_env(path = path_data, file_ext = "rds")
@@ -95,8 +106,6 @@ load_files_to_env(path = path_data, file_ext = "rds")
 ## spatial OWF data
 
 ```{r data-spatial}
-#| output: false
-
 
 # fix owf polygons
 ## TODO: put into spatial data script
@@ -202,7 +211,7 @@ To explore what species have been detected in BE OWF, we get all belgian OWF sta
 plot_deployments_owf_station_BE <-
   ggplot() +
   geom_hline(data = deployment_stations_BE_OWF, aes(yintercept = fct_reorder(station_name %>% as.factor(), first_deployment, .desc = T), color = dist_to_coast_km), linewidth = 2.5) +
-  geom_segment(data = deployments %>% dplyr::filter(inside_OWF == TRUE, country == "Belgium"), aes(x = deploy_date_time, y = station_name, xend = recover_date_time), color = "white", linewidth = 1) +
+  geom_segment(data = deployments %>% dplyr::filter(station_name %in% deployment_stations_BE_OWF$station_name), aes(x = deploy_date_time, y = station_name, xend = recover_date_time, yend = station_name), color = "white", linewidth = 1) +
   # geom_text(data = deployment_stations_BE_OWF, aes(y = station_name, x = deployment_stations_BE_OWF$first_deployment %>% min() - days(30), label = paste((deploy_duration_total %>% as.numeric / 365) %>% round(digits = 1), "y")), color = "white") +
   labs(title = "acoustic receiver deployments inside Belgian OWF by station", x = "", y = "receiver station", color = "dist to coast (km)") +
   theme_minimal() +
@@ -223,7 +232,7 @@ plot_deployments_owf_station_BE_hist <-
 # plot_deployments_owf_station_BE_hist
 save_plot(plot_deployments_owf_station_BE, folder = path_plots, height = 25)
 
-plot_deployments_owf_station_BE + plot_deployments_owf_station_BE_hist
+(plot_deployments_owf_station_BE + plot_deployments_owf_station_BE_hist) #%>% ggplotly()
 ```
 
 
